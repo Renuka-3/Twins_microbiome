@@ -1,0 +1,103 @@
+---
+title: "beta"
+author: "Renuka"
+date: "2023-12-30"
+output: html_document
+---
+
+
+
+```{r beta, echo=FALSE, message=FALSE, warning=FALSE, error=FALSE}
+library(mia)
+library(vegan)
+library(ggplot2)
+library(scater)
+library(ggrepel)
+library(gridExtra)
+library(vegan)
+```
+
+```{r setup, include= TRUE, message=FALSE}
+## PERMANOVA analysis
+tse <- readRDS("data/twins_tse.rds")
+tse <- transformSamples(tse, method = "relabundance")
+# Agglomerate data to Species level
+tse <- agglomerateByRank(tse, rank = "Genus")
+# Set seed for reproducibility
+
+set.seed(413)
+temp <- anova(
+    betadisper( 
+        vegdist(t(assay(tse,"relabundance")), method = "bray"),
+        group = colData(tse)[,"Geographical_location"]))
+
+
+
+set.seed(1576)
+
+# We choose 999 random permutations
+permanova <- adonis2(t(assay(tse,"relabundance")) ~ Geographical_location + Diet + Gender,
+                     by = "margin", 
+                     data = colData(tse),
+                     method = "bray",
+                     permutations = 999)
+head(permanova)
+```
+
+```{r b, echo=FALSE, message=FALSE, warning=FALSE, error=FALSE}
+twins_tse <- readRDS("data/twins_tse.rds")
+tse <- transformCounts(twins_tse, method = "relabundance")
+
+# Quantify dissimilarities in the original feature space
+
+x <- assay(tse, "relabundance") # Pick relabunance assay separately
+d0 <- as.matrix(vegdist(t(x), "bray"))
+# PCoA Ordination
+pcoa <- as.data.frame(cmdscale(d0, k = 2))
+names(pcoa) <- c("PCoA1", "PCoA2")
+# Quantify dissimilarities in the ordination space
+dp <- as.matrix(dist(pcoa))
+# Calculate stress i.e. relative difference in the original and
+# projected dissimilarities
+stress <- sum((dp - d0)^2)/sum(d0^2)
+ord <- order(as.vector(d0))
+df <- data.frame(d0 = as.vector(d0)[ord],
+                  dmds = as.vector(dp)[ord])
+i<- ggplot(aes(x = d0, y = dmds), data=df) + 
+       geom_smooth() +
+       geom_point() +       
+       labs(title = "Shepard plot",
+       x = "Original distance",
+       y = "MDS distance",       
+            subtitle = paste("Stress:", round(stress, 2))) +
+  theme_bw()
+
+#library(scater)
+tse <- transformSamples(tse, method = "relabundance")
+tse <- runMDS(tse, FUN = vegan::vegdist, method = "bray", name = "PCoA_BC", exprs_values = "relabundance")
+
+# Create ggplot object for location 
+p <- plotReducedDim(tse, "PCoA_BC", colour_by = "Geographical_location", point_size= 2.5)
+# Add explained variance for each axis
+e <- attr(reducedDim(tse, "PCoA_BC"), "eig");
+rel_eig <- e/sum(e[e>0])          
+p <- p + labs(x = paste("PCoA 1 (", round(100 * rel_eig[[1]],1), "%", ")", sep = ""),
+              y = paste("PCoA 2 (", round(100 * rel_eig[[2]],1), "%", ")", sep = ""), title= "B. Location") + 
+   theme(legend.text=element_text(size=9)) + theme(axis.text.x = element_text(size=8), axis.text.y = element_text(size = 8)) + theme(axis.title = element_text(size = 10), plot.title = element_text(size = 15))
+#print(p)
+
+
+# Create ggplot object for Diet
+p1 <- plotReducedDim(tse, "PCoA_BC", colour_by = "Diet", point_size= 2.5)
+e <- attr(reducedDim(tse, "PCoA_BC"), "eig");
+rel_eig <- e/sum(e[e>0])          
+p1 <- p1 + labs(x = paste("PCoA 1 (", round(100 * rel_eig[[1]],1), "%", ")", sep = ""),
+              y = paste("PCoA 2 (", round(100 * rel_eig[[2]],1), "%", ")", sep = ""), title= "A. Diet") + theme( legend.text=element_text(size=5)) + theme(axis.text.x = element_text(size=8), axis.text.y = element_text(size = 8)) + theme(axis.title = element_text(size = 10), plot.title = element_text(size = 15)) + theme(legend.box.spacing = unit(5, "pt"), legend.margin=margin(10,10,10,10)) #+labs(tag = "A")
+
+# Create ggplot object for Gender
+p2 <- plotReducedDim(tse, "PCoA_BC", colour_by = "Gender", point_size= 2.5)
+e <- attr(reducedDim(tse, "PCoA_BC"), "eig");
+rel_eig <- e/sum(e[e>0])          
+p2 <- p2 + labs(x = paste("PCoA 1 (", round(100 * rel_eig[[1]],1), "%", ")", sep = ""),
+              y = paste("PCoA 2 (", round(100 * rel_eig[[2]],1), "%", ")", sep = ""), title= "Gender") + theme(legend.text=element_text(size=5)) + theme(axis.text.x = element_text(size=8), axis.text.y = element_text(size = 8)) + theme(axis.title = element_text(size = 10), plot.title = element_text(size = 15)) + theme(legend.box.spacing = unit(5, "pt"), legend.margin=margin(10,10,10,10))
+```

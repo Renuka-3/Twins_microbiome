@@ -1,0 +1,10 @@
+"0","jscs <- runJunctionSeqAnalyses(sample.files = countFiles,
+sample.names = decoder$sample.ID,
+condition=factor(decoder$group.ID),
+flat.gff.file = gff.file,
+nCores = 1,
+analysis.type = ""junctionsAndExons"")
+"
+"2","Error in runJunctionSeqAnalyses(sample.files = countFiles, sample.names = decoder$sample.ID,  : 
+  could not find function ""runJunctionSeqAnalyses""
+"

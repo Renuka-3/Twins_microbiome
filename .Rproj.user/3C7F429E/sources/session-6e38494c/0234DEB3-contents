@@ -1,0 +1,24 @@
+---
+title: "DMM"
+author: "Renuka"
+date: "2024-01-10"
+output: html_document
+---
+
+```{r setup}
+library(mia)
+library(miaViz)
+library(dplyr)
+library(cluster)
+library(bluster)
+# Get the data
+tse <- readRDS("data/twins_tse.rds")
+# Agglomerate by rank
+tse <- agglomerateByRank(tse, rank ="Phylum", onRankOnly=TRUE)
+ 
+#Run the model and calculates the most likely number of clusters from 1 to 7
+
+# Save as an alternative experiment that contains clustering information
+altExp(tse, "dmm") <- cluster(tse, name = "DMM", DmmParam(k = 1:7, type = "twins"), 
+                   MARGIN = "samples", full = TRUE)
+```

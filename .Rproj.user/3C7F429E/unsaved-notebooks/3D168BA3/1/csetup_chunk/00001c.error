@@ -1,0 +1,1 @@
+{"frames":[],"message":"Error in runJunctionSeqAnalyses(sample.files = countFiles, sample.names = decoder$sample.ID,  : \n  could not find function \"runJunctionSeqAnalyses\"\n"}
