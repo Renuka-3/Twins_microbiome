@@ -8,7 +8,7 @@ The data uses TreeSummarizedExperiment data container.
 
 To generate TSE object in RStudio run the script using the following command  
 ```
-rmarkdown::render("fam_TSE.Rmd")
+rmarkdown::render("TSE.Rmd")
 ```
  
 ## Analysis scripts and visualization
