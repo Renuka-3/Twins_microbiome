@@ -15,9 +15,10 @@ library(scater)
 library(ggrepel)
 library(gridExtra)
 library(vegan)
+library(gridExtra)
 ```
 
-```{r setup, include= TRUE, message=FALSE}
+```{r setup, include= FALSE, message=FALSE}
 ## PERMANOVA analysis
 tse <- readRDS("data/twins_tse.rds")
 tse <- transformSamples(tse, method = "relabundance")
@@ -100,4 +101,7 @@ e <- attr(reducedDim(tse, "PCoA_BC"), "eig");
 rel_eig <- e/sum(e[e>0])          
 p2 <- p2 + labs(x = paste("PCoA 1 (", round(100 * rel_eig[[1]],1), "%", ")", sep = ""),
               y = paste("PCoA 2 (", round(100 * rel_eig[[2]],1), "%", ")", sep = ""), title= "Gender") + theme(legend.text=element_text(size=5)) + theme(axis.text.x = element_text(size=8), axis.text.y = element_text(size = 8)) + theme(axis.title = element_text(size = 10), plot.title = element_text(size = 15)) + theme(legend.box.spacing = unit(5, "pt"), legend.margin=margin(10,10,10,10))
+
+gridExtra::grid.arrange(p, p1, p2, ncol = 3)
 ```
+

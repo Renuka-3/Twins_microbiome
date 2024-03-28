@@ -18,19 +18,20 @@ head(colData(tse)$shannon)
 library(ggplot2)
 library(patchwork)
 library(ggsignif)
+library(ggpubr)
 
 df <- as.data.frame(colData(tse))
 a <- ggplot(df, aes(x = Diet, y = shannon)) +    ## Shannon Diversity for Diet
 geom_boxplot(outlier.shape = NA) + 
   geom_jitter(width = 0.05) + 
-  labs(y= "Shannon index", x= "", title = "A. Diet") + theme_bw() + theme(text = element_text(size = 13), axis.text = element_text(size = 10), axis.title = element_text(size = 12)) + geom_signif(comparisons = list(c("Mixed", "Vegetarian")), map_signif_level = FALSE, na.rm = TRUE)
+  labs(y= "Shannon index", x= "", title = "A. Diet") + theme_bw() + theme(text = element_text(size = 13), axis.text = element_text(size = 10), axis.title = element_text(size = 12)) + geom_bracket(xmin = "Mixed", xmax= "Vegetarian", y.position = 2.2,label = "0.40") #+ geom_signif(comparisons = list(c("Mixed", "Vegetarian")), map_signif_level = FALSE, na.rm = TRUE)
   
 b <- ggplot(df, aes(x = Gender, y = shannon)) +    ## Shannon Diversity for Gender
 geom_boxplot(outlier.shape = NA) + 
   geom_jitter(width = 0.05) + 
-  labs(y= "Shannon index", x= "", title = "B. Gender") + theme_bw() + theme(text = element_text(size = 13), axis.text = element_text(size = 10), axis.title = element_text(size = 12)) + geom_signif(comparisons = list(c("Male", "Female")), map_signif_level = FALSE, na.rm = TRUE)
+  labs(y= "Shannon index", x= "", title = "B. Gender") + theme_bw() + theme(text = element_text(size = 13), axis.text = element_text(size = 10), axis.title = element_text(size = 12)) + geom_bracket(xmin = "Female", xmax= "Male", y.position = 2.2,label = "0.95") #+ geom_signif(comparisons = list(c("Male", "Female")), map_signif_level = FALSE, na.rm = TRUE)
 
-d <- ggplot(df, aes(x = Geographical_location, y = shannon)) +    ## Shannon Diversity for location
+c <- ggplot(df, aes(x = Geographical_location, y = shannon)) +    ## Shannon Diversity for location
 geom_boxplot(outlier.shape = NA) + 
   geom_jitter(width = 0.05) + 
   labs(y= "Shannon index", x= "", title = "C. Geographical location") + theme_bw() + theme(text = element_text(size = 13), axis.text = element_text(size = 10), axis.title = element_text(size = 12)) + geom_signif(comparisons = list(c("Ahmednagar", "Pune"), c("Pune","Nashik"), c("Nashik", "Ahmednagar")), map_signif_level = FALSE, na.rm = TRUE)
@@ -43,18 +44,16 @@ m[["Geographical_location"]] <- kruskal.test(data = l, shannon ~ factor(Geograph
 m[["Gender"]] <- kruskal.test(data = l, shannon ~ factor(Gender))$p.value
 p.adjust(m, method="fdr")
 
-c <- ggplot(df, aes(x = Soap, y = shannon)) +    ## Shannon Diversity for location
-geom_boxplot(outlier.shape = NA) + 
-  geom_jitter(width = 0.05) + 
-  labs(y= "Shannon index", x= "", title = "C. Soap") + theme_bw() + theme(text = element_text(size = 13), axis.text = element_text(size = 10), axis.title = element_text(size = 12)) #+ geom_signif(comparisons = list(c("Ahmednagar", "Pune"), c("Pune","Nashik"), c("Nashik", "Ahmednagar")), map_signif_level = FALSE, na.rm = TRUE)
+library(grid)
+library(gridExtra)
+gridExtra::grid.arrange(a, b, c, ncol = 3)
 
-print(c)
-
-a <- ggplot(df, aes(x = Pair, y = shannon)) +    ## Shannon Diversity for Diet
+d <- ggplot(df, aes(x = Pair, y = shannon)) +    ## Shannon Diversity for twin pair (between)
 geom_boxplot(outlier.shape = NA) + 
   geom_jitter(width = 0.05) + 
   labs(y= "Shannon index", x= "", title = "Twin-pair diversity") + theme_bw() + theme(text = element_text(size = 13), axis.text = element_text(size = 10), axis.title = element_text(size = 12)) + geom_signif(comparisons = list(c("Twin1", "Twin2"), c("Twin1", "Twin9"), c("Twin3", "Twin4")), map_signif_level = FALSE, na.rm = TRUE)
 
+print(d)
 
 ## anosim
 df <- as.data.frame(colData(tse))
