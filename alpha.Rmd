@@ -5,7 +5,7 @@ date: "2023-12-30"
 output: html_document
 ---
 
-```{r setup, message=TRUE}
+```{r setup, message=TRUE, include=FALSE}
 library("mia")
 tse <- readRDS("data/twins_tse.rds")
 #Alpha diversity measures
@@ -61,6 +61,14 @@ df <- as.data.frame(colData(tse))
 library(vegan)
 df <- as.data.frame(colData(tse))
 s <- anosim(df$shannon, df$Pair, permutations = 999)
+summary(s)
+plot(s)
+
+df <- as.data.frame(colData(tse))
+
+library(vegan)
+df <- as.data.frame(colData(tse))
+s <- anosim(df$shannon, df$Samples, permutations = 999)
 summary(s)
 plot(s)
 ```
