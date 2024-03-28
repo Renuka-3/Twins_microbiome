@@ -13,5 +13,5 @@ rmarkdown::render("TSE.Rmd")
  
 ## Analysis scripts and visualization
 - [Alpha diversity analysis](alpha.Rmd) | [Figures](alpha.md): alpha diversity estimated using Shannon diversity index for all co-factors. 
-- [Beta diversity analysis](beta.Rmd) | [Figures](beta.md): PCoA and PERMANOVA analysis was carried out with confounding factors.
+- [Beta diversity analysis](beta.Rmd) | [Figures](beta.md): PCoA (BC index) and PERMANOVA (at 999 permutations) analysis carried out with confounding factors.
 - [most prevalent microbiome](core.Rmd) | [Figures](core.md): Most prevalent phyla and genera at 0.1% abundance and 10% prevalence threshold.
