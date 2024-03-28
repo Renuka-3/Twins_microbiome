@@ -18,7 +18,7 @@ library(vegan)
 library(gridExtra)
 ```
 
-```{r setup, include= FALSE, message=FALSE}
+```{r permanova, echo=FALSE, warning=FALSE, message=FALSE}
 ## PERMANOVA analysis
 tse <- readRDS("data/twins_tse.rds")
 tse <- transformSamples(tse, method = "relabundance")

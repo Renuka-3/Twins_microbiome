@@ -5,8 +5,13 @@ date: "2023-12-30"
 output: html_document
 ---
 
-```{r setup, message=TRUE, include=FALSE}
+```{r alpha, message=FALSE, echo=FALSE, warning=FALSE}
 library("mia")
+library(ggplot2)
+library(patchwork)
+library(ggsignif)
+library(ggpubr)
+
 tse <- readRDS("data/twins_tse.rds")
 #Alpha diversity measures
 tse <- mia::estimateDiversity(tse, 
@@ -15,10 +20,6 @@ tse <- mia::estimateDiversity(tse,
                               name = "shannon")
 head(colData(tse)$shannon)
 
-library(ggplot2)
-library(patchwork)
-library(ggsignif)
-library(ggpubr)
 
 df <- as.data.frame(colData(tse))
 a <- ggplot(df, aes(x = Diet, y = shannon)) +    ## Shannon Diversity for Diet
@@ -60,14 +61,6 @@ df <- as.data.frame(colData(tse))
 library(vegan)
 df <- as.data.frame(colData(tse))
 s <- anosim(df$shannon, df$Pair, permutations = 999)
-summary(s)
-plot(s)
-
-df <- as.data.frame(colData(tse))
-
-library(vegan)
-df <- as.data.frame(colData(tse))
-s <- anosim(df$shannon, df$Samples, permutations = 999)
 summary(s)
 plot(s)
 ```
