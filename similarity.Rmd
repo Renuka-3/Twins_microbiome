@@ -1,0 +1,193 @@
+---
+title: "Untitled"
+author: "Renuka"
+date: "2024-04-12"
+output: html_document
+---
+
+for twins paper (sibling similarity)
+
+```{r setup, echo=FALSE, message=FALSE, warning=FALSE, error=FALSE}
+#library(mia)
+#library(miaViz)
+#library(vegan)
+#tse <- readRDS("data/fam_tse.rds")
+#tse <- tse[ , tse$G %in% "G3"]
+#tse1 <- tse[,!(colnames(tse) %in% c("B3", "C5", "D3", "E4", "G4", "H5", "J5", "L4", "O7"))]
+#x <- as.matrix(vegdist(t(assay(tseA, "counts")), method="bray"))
+#average_dissimilarity <- mean(x)
+#percentage_similarity <- 100 - (average_dissimilarity * 100)
+#percentage_similarity
+
+
+#tseA <- tse[,!(colnames(tse1) %in% c("F4", "F5", "I5", "I6", "K4", "K5", "M4", "M5", "N4", "N5"))]
+#x <- as.matrix(vegdist(t(assay(tseA, "counts")), method="bray"))
+#average_dissimilarity <- mean(x)
+#percentage_similarity <- 100 - (average_dissimilarity * 100)
+#percentage_similarity
+
+#tseF <- tse[,!(colnames(tse1) %in% c("A4", "A5", "I5", "I6", "K4", "K5", "M4", "M5", "N4", "N5"))]
+#x <- as.matrix(vegdist(t(assay(tseF, "counts")), method="bray"))
+#average_dissimilarity <- mean(x)
+#percentage_similarity <- 100 - (average_dissimilarity * 100)
+#percentage_similarity
+
+#tseI <- tse[,!(colnames(tse1) %in% c("A4", "A5", "F5", "F6", "K4", "K5", "M4", "M5", "N4", "N5"))]
+#x <- as.matrix(vegdist(t(assay(tseI, "counts")), method="bray"))
+#average_dissimilarity <- mean(x)
+#percentage_similarity <- 100 - (average_dissimilarity * 100)
+#percentage_similarity
+
+#tseK <- tse[,!(colnames(tse1) %in% c("A4", "A5", "F5", "F6", "I4", "I5", "M4", "M5", "N4", "N5"))]
+#x <- as.matrix(vegdist(t(assay(tseK, "counts")), method="bray"))
+#average_dissimilarity <- mean(x)
+#percentage_similarity <- 100 - (average_dissimilarity * 100)
+#percentage_similarity
+
+#tseM <- tse[,!(colnames(tse1) %in% c("A4", "A5", "F5", "F6", "I4", "I5", "K4", "K5", "N4", "N5"))]
+#x <- as.matrix(vegdist(t(assay(tseM, "counts")), method="bray"))
+#average_dissimilarity <- mean(x)
+#percentage_similarity <- 100 - (average_dissimilarity * 100)
+#percentage_similarity
+
+#tseN <- tse[,!(colnames(tse1) %in% c("A4", "A5", "F5", "F6", "I4", "I5", "K4", "K5", "M4", "M5"))]
+#x <- as.matrix(vegdist(t(assay(tseN, "counts")), method="bray"))
+#average_dissimilarity <- mean(x)
+#percentage_similarity <- 100 - (average_dissimilarity * 100)
+#percentage_similarity
+```
+
+Calculatinfrom new tse, sibtwinTSE
+
+```{r sib, echo=FALSE, message=FALSE, warning=FALSE, error=FALSE}
+library(mia)
+library(miaViz)
+library(vegan)
+tse <- readRDS("sibdata/sibtwin_tse.rds")
+tse <- tse[ , tse$Pair %in% "Sibling"]
+
+tseS1 <- tse[,!(colnames(tse) %in% c("S3", "S4", "S5", "S6", "S7", "S8", "S9", "S10", "S11", "S12"))]
+x <- as.matrix(vegdist(t(assay(tseS1, "counts")), method="bray"))
+average_dissimilarity <- mean(x)
+percentage_similarity <- 100 - (average_dissimilarity * 100)
+percentage_similarity
+
+tseS2 <- tse[,!(colnames(tse) %in% c("S1", "S2", "S5", "S6", "S7", "S8", "S9", "S10", "S11", "S12"))]
+x <- as.matrix(vegdist(t(assay(tseS2, "counts")), method="bray"))
+average_dissimilarity <- mean(x)
+percentage_similarity <- 100 - (average_dissimilarity * 100)
+percentage_similarity
+
+tseS3 <- tse[,!(colnames(tse) %in% c("S1", "S2", "S3", "S4", "S7", "S8", "S9", "S10", "S11", "S12"))]
+x <- as.matrix(vegdist(t(assay(tseS3, "counts")), method="bray"))
+average_dissimilarity <- mean(x)
+percentage_similarity <- 100 - (average_dissimilarity * 100)
+percentage_similarity
+
+tseS4 <- tse[,!(colnames(tse) %in% c("S1", "S2", "S3", "S4", "S5", "S6", "S9", "S10", "S11", "S12"))]
+x <- as.matrix(vegdist(t(assay(tseS4, "counts")), method="bray"))
+average_dissimilarity <- mean(x)
+percentage_similarity <- 100 - (average_dissimilarity * 100)
+percentage_similarity
+
+tseS5 <- tse[,!(colnames(tse) %in% c("S1", "S2", "S3", "S4", "S5", "S6", "S7", "S8", "S11", "S12"))]
+x <- as.matrix(vegdist(t(assay(tseS5, "counts")), method="bray"))
+average_dissimilarity <- mean(x)
+percentage_similarity <- 100 - (average_dissimilarity * 100)
+percentage_similarity
+
+tseS6 <- tse[,!(colnames(tse) %in% c("S1", "S2", "S3", "S4", "S5", "S6", "S7", "S8", "S9", "S10"))]
+x <- as.matrix(vegdist(t(assay(tseS6, "counts")), method="bray"))
+average_dissimilarity <- mean(x)
+percentage_similarity <- 100 - (average_dissimilarity * 100)
+percentage_similarity
+```
+Calculatinfrom new tse, sibtwinTSE
+
+```{r twin, echo=FALSE, message=FALSE, warning=FALSE, error=FALSE}
+library(mia)
+library(miaViz)
+library(vegan)
+tse <- readRDS("sibdata/sibtwin_tse.rds")
+tse <- tse[ , tse$Pair %in% "Twin"]
+
+
+tseT1 <- tse[,(colnames(tse) %in% c("T1A", "T1B"))]
+x <- as.matrix(vegdist(t(assay(tseT1, "counts")), method="bray"))
+average_dissimilarity <- mean(x)
+percentage_similarity <- 100 - (average_dissimilarity * 100)
+percentage_similarity
+
+tseT2 <- tse[,(colnames(tse) %in% c("T2A", "T2B"))]
+x <- as.matrix(vegdist(t(assay(tseT2, "counts")), method="bray"))
+average_dissimilarity <- mean(x)
+percentage_similarity <- 100 - (average_dissimilarity * 100)
+percentage_similarity
+
+tseT3 <- tse[,(colnames(tse) %in% c("T3A", "T3B"))]
+x <- as.matrix(vegdist(t(assay(tseT3, "counts")), method="bray"))
+average_dissimilarity <- mean(x)
+percentage_similarity <- 100 - (average_dissimilarity * 100)
+percentage_similarity
+
+
+tseT4 <- tse[,(colnames(tse) %in% c("T4A", "T4B"))]
+x <- as.matrix(vegdist(t(assay(tseT4, "counts")), method="bray"))
+average_dissimilarity <- mean(x)
+percentage_similarity <- 100 - (average_dissimilarity * 100)
+percentage_similarity
+
+tseT5 <- tse[,(colnames(tse) %in% c("T5A", "T5B"))]
+x <- as.matrix(vegdist(t(assay(tseT5, "counts")), method="bray"))
+average_dissimilarity <- mean(x)
+percentage_similarity <- 100 - (average_dissimilarity * 100)
+percentage_similarity
+
+tseT6 <- tse[,(colnames(tse) %in% c("T6A", "T6B"))]
+x <- as.matrix(vegdist(t(assay(tseT6, "counts")), method="bray"))
+average_dissimilarity <- mean(x)
+percentage_similarity <- 100 - (average_dissimilarity * 100)
+percentage_similarity
+
+tseT7 <- tse[,(colnames(tse) %in% c("T7A", "T7B"))]
+x <- as.matrix(vegdist(t(assay(tseT7, "counts")), method="bray"))
+average_dissimilarity <- mean(x)
+percentage_similarity <- 100 - (average_dissimilarity * 100)
+percentage_similarity
+
+tseT8 <- tse[,(colnames(tse) %in% c("T8A", "T8B"))]
+x <- as.matrix(vegdist(t(assay(tseT8, "counts")), method="bray"))
+average_dissimilarity <- mean(x)
+percentage_similarity <- 100 - (average_dissimilarity * 100)
+percentage_similarity
+
+tseT9 <- tse[,(colnames(tse) %in% c("T9A", "T9B"))]
+x <- as.matrix(vegdist(t(assay(tseT9, "counts")), method="bray"))
+average_dissimilarity <- mean(x)
+percentage_similarity <- 100 - (average_dissimilarity * 100)
+percentage_similarity
+
+tseT10 <- tse[,(colnames(tse) %in% c("T10A", "T10B"))]
+x <- as.matrix(vegdist(t(assay(tseT10, "counts")), method="bray"))
+average_dissimilarity <- mean(x)
+percentage_similarity <- 100 - (average_dissimilarity * 100)
+percentage_similarity
+
+tseT11 <- tse[,(colnames(tse) %in% c("T11A", "T11B"))]
+x <- as.matrix(vegdist(t(assay(tseT11, "counts")), method="bray"))
+average_dissimilarity <- mean(x)
+percentage_similarity <- 100 - (average_dissimilarity * 100)
+percentage_similarity
+
+tseT12 <- tse[,(colnames(tse) %in% c("T12A", "T12B"))]
+x <- as.matrix(vegdist(t(assay(tseT12, "counts")), method="bray"))
+average_dissimilarity <- mean(x)
+percentage_similarity <- 100 - (average_dissimilarity * 100)
+percentage_similarity
+
+tseT13 <- tse[,(colnames(tse) %in% c("T13A", "T13B"))]
+x <- as.matrix(vegdist(t(assay(tseT13, "counts")), method="bray"))
+average_dissimilarity <- mean(x)
+percentage_similarity <- 100 - (average_dissimilarity * 100)
+percentage_similarity
+```

@@ -68,3 +68,36 @@ fam_tse1 <- TreeSummarizedExperiment(assays = SimpleList(counts=counts),
 # Save the data object
 saveRDS(fam_tse1, file="D:/Twins_microbiome/data/test/test_tse.rds")
 ```
+
+
+
+
+```{r tse, echo=FALSE, message=FALSE, warning=FALSE, error=FALSE}
+library(readxl)    # To read Excel files
+library(dplyr)
+library(mia)
+library(TreeSummarizedExperiment)
+
+# Read count data
+counts  <- read_excel("D:/Twins_microbiome/sibdata/otu.xlsx") # Abundance table (e.g. ASV data; to assay data)
+row.names(counts) <- counts$OTU
+counts <- counts %>% select (-OTU)
+counts <- as.matrix(counts) # Count data must be a matrix
+
+# Read taxonomic table
+tax <- as.data.frame(read_excel("D:/Twins_microbiome/sibdata/taxa.xlsx"))   # Taxonomy table (to rowData)
+row.names(tax) <- tax$OTU
+tax <- tax %>% select (-OTU) 
+
+# Read sample metadata
+sampledata <- as.data.frame(read_excel("D:/Twins_microbiome/sibdata/metadata.xlsx"))   # Sample data (to colData)
+row.names(sampledata) <- sampledata$Sample
+
+# Convert data into TreeSummarizedExperiment object
+fam_tse1 <- TreeSummarizedExperiment(assays = SimpleList(counts=counts),
+                                colData = sampledata,
+				rowData = tax) 
+
+# Save the data object
+saveRDS(fam_tse1, file="D:/Twins_microbiome/sibdata/sibtwin_tse.rds")
+```

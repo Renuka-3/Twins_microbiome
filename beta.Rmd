@@ -104,4 +104,4 @@ p2 <- p2 + labs(x = paste("PCoA 1 (", round(100 * rel_eig[[1]],1), "%", ")", sep
 
 gridExtra::grid.arrange(p, p1, p2, ncol = 3)
 ```
-
+ 
