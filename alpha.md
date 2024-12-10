@@ -1,5 +1,4 @@
-    ##      T1A      T1B      T2A      T2B      T3A      T3B 
-    ## 1.159530 1.362083 0.483658 1.134799 1.734696 1.549655
+    ## [1] 1.159530 1.362083 0.483658 1.134799 1.734696 1.549655
 
     ##                  Diet Geographical_location                Gender 
     ##            0.40257244            0.06523656            0.95569587
@@ -12,14 +11,14 @@
     ## Dissimilarity: bray 
     ## 
     ## ANOSIM statistic R: 0.1617 
-    ##       Significance: 0.118 
+    ##       Significance: 0.102 
     ## 
     ## Permutation: free
     ## Number of permutations: 999
     ## 
     ## Upper quantiles of permutations (null model):
     ##   90%   95% 97.5%   99% 
-    ## 0.172 0.221 0.269 0.319 
+    ## 0.163 0.217 0.262 0.325 
     ## 
     ## Dissimilarity ranks between and within classes:
     ##          0%   25%   50%    75% 100%   N
@@ -39,3 +38,18 @@
     ## Twin9   205 205.0 205.0 205.00  205   1
 
 ![](alpha_files/figure-markdown_strict/alpha-3.png)
+
+# Alpha diversity at phyla level\_just for checking 2 dec2024
+
+    ## [1] 0.3212434 0.4817252 0.1309441 0.4973243 0.6868667 0.8289948
+
+    ##                  Diet Geographical_location                Gender 
+    ##            0.30885482            0.04602548            0.82414090
+
+![](alpha_files/figure-markdown_strict/alpha2-1.png) \##updated analysis
+of alpha diversity with niter
+
+    ##                  Diet Geographical_location                Gender 
+    ##            0.40257244            0.06523656            0.95569587
+
+![](alpha_files/figure-markdown_strict/alphaupdated-1.png)

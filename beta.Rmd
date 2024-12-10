@@ -22,7 +22,7 @@ library(gridExtra)
 ## PERMANOVA analysis
 tse <- readRDS("data/twins_tse.rds")
 tse <- transformSamples(tse, method = "relabundance")
-# Agglomerate data to Species level
+# Agglomerate data to genus level
 tse <- agglomerateByRank(tse, rank = "Genus")
 # Set seed for reproducibility
 
