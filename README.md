@@ -16,3 +16,5 @@ rmarkdown::render("TSE.Rmd")
 - [Alpha diversity analysis](alpha.Rmd) | [Figure2](alpha.md): alpha diversity estimated using Shannon diversity index for all co-factors. 
 - [Beta diversity analysis](beta.Rmd) | [Figure3](beta.md): PCoA (BC index) and PERMANOVA (at 999 permutations) analysis carried out with confounding factors.
 - [comparative_analysis](comparative_analysis.Rmd) | [Figure4](comparative_analysis.md): A) twins non twins analysis at 20% prevalence. B) Twins, sibling and unrelated analysis at 20% prevalence.
+
+### cite the code [![DOI](https://zenodo.org/badge/757274106.svg)](https://doi.org/10.5281/zenodo.14576498)
