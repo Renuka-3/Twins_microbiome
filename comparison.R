@@ -12,25 +12,6 @@ library(ggsignif)
 library(miaViz)
 
 tse <- readRDS("sibdata/sibtwin_tse.rds")
-
-# Calculate the list of sequencing depths across samples
-sequencing_depths <- colSums(assay(tse, "counts"))
-# Calculate variation between highest and lowest sequencing depth
-depth_variation <- max(sequencing_depths)/min(sequencing_depths)
-depth_variation
-
-# Let us see what happens when we operate with ntop highest variance features
-ntop <- 5
-
-# Calculate the standard deviations for each row
-row_sds <- rowSds(assay(tse, "counts"))
-
-# Get the indices of the top 5 rows with the highest standard deviations
-#top_indices <- order(row_sds, decreasing = TRUE)[1:ntop]
-# Subset the tse object based on the top indices
-#tse_sub <- tse[top_indices, ]
-
-
 tse <- tse[,!(colnames(tse) %in% c("T6A", "T6B", "T7A", "T7B", "T8A", "T8B", "T9A", "T9B", "T11A", "T11B", "T12A", "T12B", "T13A", "T13B"))] #keeping only six twin pairs to balance equal sample comparison between sibling and unrelated individuals. 
 tse <- agglomerateByPrevalence(tse,rank = "Phylum", prevalence = 10/100)
 
@@ -81,25 +62,6 @@ print(s1)
 
 ## at genus level
 tse <- readRDS("sibdata/sibtwin_tse.rds")
-# Calculate the list of sequencing depths across samples
-sequencing_depths <- colSums(assay(tse))
-# Calculate variation between highest and lowest sequencing depth
-depth_variation <- max(sequencing_depths)/min(sequencing_depths)
-depth_variation
-
-# Let us see what happens when we operate with ntop highest variance features
-ntop <- 5
-
-# Calculate the standard deviations for each row
-row_sds <- rowSds(assay(tse, "counts"))
-
-# Get the indices of the top 5 rows with the highest standard deviations
-#top_indices <- order(row_sds, decreasing = TRUE)[1:ntop]
-
-# Subset the tse object based on the top indices
-#tse_sub <- tse[top_indices, ]
-
-
 tse <- tse[,!(colnames(tse) %in% c("T6A", "T6B", "T7A", "T7B", "T8A", "T8B", "T9A", "T9B", "T11A", "T11B", "T12A", "T12B", "T13A", "T13B"))]
 tse <- subsetByPrevalentFeatures(tse, rank = "Genus", prevalence = 10/100)
 
