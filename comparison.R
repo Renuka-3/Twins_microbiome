@@ -15,6 +15,10 @@ tse <- readRDS("sibdata/sibtwin_tse.rds")
 tse <- tse[,!(colnames(tse) %in% c("T6A", "T6B", "T7A", "T7B", "T8A", "T8B", "T9A", "T9B", "T11A", "T11B", "T12A", "T12B", "T13A", "T13B"))] #keeping only six twin pairs to balance equal sample comparison between sibling and unrelated individuals. 
 tse <- agglomerateByPrevalence(tse,rank = "Phylum", prevalence = 10/100)
 
+#altExp(tse, "phyla_prevalent") <- agglomerateByPrevalence(tse,rank = "Phylum", prevalence = 10/100)
+#altExp(tse, "phylum") <- agglomerateByPrevalence(tse,rank = "Phylum", prevalence = 10/100
+#altExp(tse, "phyla_prevalent") <- agglomerateByPrevalence(altExp(tse, "phyla_prevalent"),rank = "Phylum", prevalence = 10/100)
+
 di<- getDissimilarity(
   x = tse,
   method = "bray",
@@ -22,6 +26,9 @@ di<- getDissimilarity(
   rarefy = TRUE,
   niter = 10)
 di <-reshape2::melt(as.matrix(di)) %>% `colnames<-`(c("X","Y", "value"))
+
+#di <- as.matrix(vegdist(t(assay(tse_sub, "counts")), method="bray"))
+#di <- reshape2::melt(di) %>% `colnames<-`(c("X","Y", "value"))
 
 # split tse by twins and sibling
 tse_list <- splitOn(tse, f= "Pair")
