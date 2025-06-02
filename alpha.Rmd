@@ -5,115 +5,15 @@ date: "2023-12-30"
 output: html_document
 ---
 
-```{r alpha, message=FALSE, echo=FALSE, warning=FALSE}
+
+##updated analysis of alpha diversity with niter
+
+```{r alphaupdated, message=FALSE, echo=FALSE, warning=FALSE}
 library(mia)
 library(ggplot2)
 library(patchwork)
 library(ggsignif)
 library(ggpubr)
-
-tse <- readRDS("data/twins_tse.rds")
-#Alpha diversity measures
-tse <- mia::estimateDiversity(tse, 
-                              assay.type = "counts",
-                              index = "shannon", 
-                              name = "shannon")
-head(colData(tse)$shannon)
-
-
-df <- as.data.frame(colData(tse))
-a <- ggplot(df, aes(x = Diet, y = shannon)) +    ## Shannon Diversity for Diet
-geom_boxplot(outlier.shape = NA) + 
-  geom_jitter(width = 0.05) + 
-  labs(y= "Shannon index", x= "", title = "b. Diet") + theme_bw() + theme(text = element_text(size = 15), axis.text = element_text(size = 13), axis.title = element_text(size = 12)) #+ geom_bracket(xmin = "Mixed", xmax= "Vegetarian", y.position = 2.2,label = "0.40") #+ geom_signif(comparisons = list(c("Mixed", "Vegetarian")), map_signif_level = FALSE, na.rm = TRUE)
-  
-b <- ggplot(df, aes(x = Gender, y = shannon)) +    ## Shannon Diversity for Gender
-geom_boxplot(outlier.shape = NA) + 
-  geom_jitter(width = 0.05) + 
-  labs(y= "Shannon index", x= "", title = "c. Gender") + theme_bw() + theme(text = element_text(size = 15), axis.text = element_text(size = 13), axis.title = element_text(size = 12)) #+ geom_bracket(xmin = "Female", xmax= "Male", y.position = 2.2,label = "0.95") #+ geom_signif(comparisons = list(c("Male", "Female")), map_signif_level = FALSE, na.rm = TRUE)
-
-c <- ggplot(df, aes(x = Geographical_location, y = shannon)) +    ## Shannon Diversity for location
-geom_boxplot(outlier.shape = NA) + 
-  geom_jitter(width = 0.05) + 
-  labs(y= "Shannon index", x= "", title = "a. Geographical location") + theme_bw() + theme(text = element_text(size = 15), axis.text = element_text(size = 13), axis.title = element_text(size = 17)) + geom_bracket(xmin = "Ahmednagar", xmax= "Pune", y.position = 2.0,label = "0.05")#+ geom_signif(comparisons = list(c("Ahmednagar", "Pune"), c("Pune","Nashik"), c("Nashik", "Ahmednagar")), map_signif_level = FALSE, na.rm = TRUE)
-
-## Multiple pairwise comparison for all co-factors
-m <- c()
-l <- df
-m[["Diet"]] <- kruskal.test(data = l, shannon ~ factor(Diet))$p.value
-m[["Geographical_location"]] <- kruskal.test(data = l, shannon ~ factor(Geographical_location))$p.value
-m[["Gender"]] <- kruskal.test(data = l, shannon ~ factor(Gender))$p.value
-p.adjust(m, method="fdr")
-
-library(grid)
-library(gridExtra)
-gridExtra::grid.arrange(c, a, b, ncol = 3)
-
-d <- ggplot(df, aes(x = Pair, y = shannon)) +    ## Shannon Diversity for twin pair (between)
-geom_boxplot(outlier.shape = NA) + 
-  geom_jitter(width = 0.05) + 
-  labs(y= "Shannon index", x= "", title = "Twin-pair diversity") + theme_bw() + theme(text = element_text(size = 13), axis.text = element_text(size = 10), axis.title = element_text(size = 12)) + geom_signif(comparisons = list(c("Twin1", "Twin2"), c("Twin1", "Twin9"), c("Twin3", "Twin4")), map_signif_level = FALSE, na.rm = TRUE)
-
-print(d)
-
-## anosim
-df <- as.data.frame(colData(tse))
-library(vegan)
-df <- as.data.frame(colData(tse))
-s <- anosim(df$shannon, df$Pair, permutations = 999)
-summary(s)
-plot(s)
-```
-
-
-# Alpha diversity at phyla level_just for checking 2 dec2024
-
-```{r alpha2, message=FALSE, echo=FALSE, warning=FALSE}
-tse <- readRDS("data/twins_tse.rds")
-tse <- transformAssay(tse, assay.type = "counts", method = "relabundance")
-
-# Getting top taxa on a Phylum level
-tse <- agglomerateByRank(tse, rank ="Phylum")
-#Alpha diversity measures
-tse <- mia::estimateDiversity(tse, 
-                              assay_name = "counts",
-                              index = "shannon", 
-                              name = "shannon")
-head(colData(tse)$shannon)
-
-
-df <- as.data.frame(colData(tse))
-
-a <- ggplot(df, aes(x = Diet, y = shannon)) +    ## Shannon Diversity for Diet
-geom_boxplot(outlier.shape = NA) + 
-  geom_jitter(width = 0.05) + 
-  labs(y= "Shannon index", x= "", title = "A. Diet") + theme_bw() + theme(text = element_text(size = 25), axis.text = element_text(size = 20), axis.title = element_text(size = 20))
-  
-b <- ggplot(df, aes(x = Gender, y = shannon)) +    ## Shannon Diversity for Gender
-geom_boxplot(outlier.shape = NA) + 
-  geom_jitter(width = 0.05) + 
-  labs(y= "Shannon index", x= "", title = "B. Gender") + theme_bw() + theme(text = element_text(size = 25), axis.text = element_text(size = 20), axis.title = element_text(size = 20))
-
-c <- ggplot(df, aes(x = Geographical_location, y = shannon)) +    ## Shannon Diversity for location
-geom_boxplot(outlier.shape = NA) + 
-  geom_jitter(width = 0.05) + 
-  labs(y= "Shannon index", x= "", title = "C. Geographical location") + theme_bw() + theme(text = element_text(size = 23), axis.text = element_text(size = 20), axis.title = element_text(size = 20))  + geom_signif(comparisons = list(c("Ahmednagar", "Pune")), map_signif_level = FALSE, na.rm = TRUE) + geom_signif(comparisons = list(c("Ahmednagar", "Pune"), c("Pune","Nashik"), c("Nashik", "Ahmednagar")), map_signif_level = FALSE, na.rm = TRUE)
-
-## Multiple pairwise comparison for all co-factors
-m <- c()
-l <- df
-m[["Diet"]] <- kruskal.test(data = l, shannon ~ factor(Diet))$p.value
-m[["Geographical_location"]] <- kruskal.test(data = l, shannon ~ factor(Geographical_location))$p.value
-m[["Gender"]] <- kruskal.test(data = l, shannon ~ factor(Gender))$p.value
-p.adjust(m, method="fdr")
-
-library(grid)
-library(gridExtra)
-gridExtra::grid.arrange(a, b, c, ncol = 3)
-```
-##updated analysis of alpha diversity with niter
-
-```{r alphaupdated, message=FALSE, echo=FALSE, warning=FALSE}
 tse <- readRDS("data/twins_tse.rds")
 
 #Alpha diversity measures
