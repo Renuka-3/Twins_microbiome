@@ -121,3 +121,118 @@ head(getPrevalence(tse, rank = "Phylum", detection = 0.01/100, sort = TRUE,
                    assay.type = "counts", as_relative = TRUE))
 ```
 
+
+##Geographical location-wise genus abundance of twins
+
+```{r geocore, echo=FALSE, message=FALSE, warning=FALSE, error=FALSE}
+library(mia)
+library(miaViz)
+library(dplyr)
+library(ggplot2)
+library(knitr)
+library(tidyverse)
+
+
+tse <- readRDS("data/twins_tse.rds")
+
+# 1. Subset to Pune
+tse_pune <- tse[, tse$Geographical_location == "Pune"]
+
+# 2. Transform to relative abundance
+tse_pune <- transformAssay(tse_pune, assay.type = "counts", method = "relabundance")
+
+# 3. Agglomerate at Genus level
+tse_pune_genus <- agglomerateByRank(tse_pune, rank = "Genus", onRankOnly = TRUE)
+
+# 4. Identify top 6 genera by prevalence
+top_taxa <- getTopTaxa(tse_pune_genus,top = 6,detection = 0.1 / 100,prevalence = 1 / 100,method = "prevalence",assay_name = "relabundance")
+
+# 5. Rename non-top taxa to "Other"
+rowData(tse_pune_genus)$Genus <- sapply(
+  rowData(tse_pune_genus)$Genus,
+  function(x) if (x %in% top_taxa) x else "Other"
+)
+
+# 6. Collapse all same-named taxa (this step is crucial!)
+tse_pune_genus <- agglomerateByRank(tse_pune_genus, rank = "Genus")
+
+# 7. Plot (now "Other" should appear only once)
+library(ggplot2)
+a <- plotAbundance(
+  tse_pune_genus,
+  assay_name = "relabundance",
+  rank = "Genus",
+  add_x_text = TRUE
+) +
+  labs(x = "Genus", y = "", title = "Pune") +
+  scale_y_continuous(labels = scales::percent)
+
+print(a)
+### Nashik
+# 1. Subset to Nashik
+tse_na <- tse[, tse$Geographical_location == "Nashik"]
+
+# 2. Transform to relative abundance
+tse_na <- transformAssay(tse_na, assay.type = "counts", method = "relabundance")
+
+# 3. Agglomerate at Genus level
+tse_na_genus <- agglomerateByRank(tse_na, rank = "Genus", onRankOnly = TRUE)
+
+# 4. Identify top 6 genera by prevalence
+top_taxa <- getTopTaxa(tse_na_genus,top = 6,detection = 0.1 / 100,prevalence = 1 / 100,method = "prevalence",assay_name = "relabundance")
+
+# 5. Rename non-top taxa to "Other"
+rowData(tse_na_genus)$Genus <- sapply(
+  rowData(tse_na_genus)$Genus,
+  function(x) if (x %in% top_taxa) x else "Other"
+)
+
+# 6. Collapse all same-named taxa (this step is crucial!)
+tse_na_genus <- agglomerateByRank(tse_na_genus, rank = "Genus")
+
+# 7. Plot (now "Other" should appear only once)
+library(ggplot2)
+b <- plotAbundance(
+  tse_na_genus,
+  assay_name = "relabundance",
+  rank = "Genus",
+  add_x_text = TRUE
+) +
+  labs(x = "", y = "", title = "Nashik") +
+  scale_y_continuous(labels = scales::percent)
+
+print(b)
+##ahmednagar
+tse_ahm <- tse[, tse$Geographical_location == "Ahmednagar"]
+
+# 2. Transform to relative abundance
+tse_ahm <- transformAssay(tse_ahm, assay.type = "counts", method = "relabundance")
+
+# 3. Agglomerate at Genus level
+tse_ahm_genus <- agglomerateByRank(tse_ahm, rank = "Genus", onRankOnly = TRUE)
+
+# 4. Identify top 6 genera by prevalence
+top_taxa <- getTopTaxa(tse_ahm_genus,top = 6,detection = 0.1 / 100,prevalence = 1 / 100,method = "prevalence",assay_name = "relabundance")
+
+# 5. Rename non-top taxa to "Other"
+rowData(tse_ahm_genus)$Genus <- sapply(
+  rowData(tse_ahm_genus)$Genus,
+  function(x) if (x %in% top_taxa) x else "Other"
+)
+
+# 6. Collapse all same-named taxa (this step is crucial!)
+tse_ahm_genus <- agglomerateByRank(tse_ahm_genus, rank = "Genus")
+
+# 7. Plot (now "Other" should appear only once)
+library(ggplot2)
+c <- plotAbundance(
+  tse_ahm_genus,
+  assay_name = "relabundance",
+  rank = "Genus",
+  add_x_text = TRUE
+) +
+  labs(x = "", y = "", title = "Ahmednagar") +
+  scale_y_continuous(labels = scales::percent)
+
+print(c)
+```
