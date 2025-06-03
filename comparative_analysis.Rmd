@@ -164,7 +164,7 @@ library(tidyverse)
 library(magrittr)
 library(ggsignif)
 library(miaViz)
-tse <- readRDS("sibdata/sibtwin_tse.rds")
+tse <- readRDS("data/sibdata/sibtwin_tse.rds")
 tse <- tse[,!(colnames(tse) %in% c("T6A", "T6B", "T7A", "T7B", "T8A", "T8B", "T9A", "T9B", "T11A", "T11B", "T12A", "T12B", "T13A", "T13B"))]
 #tse <- subsetByPrevalentFeatures(tse, rank = "Phylum",prevalence = 10/100)
 tse <- agglomerateByPrevalence(tse,rank = "Phylum", prevalence = 10/100)
@@ -210,7 +210,7 @@ print(r1)
 
 
 ## at genus level
-tse <- readRDS("sibdata/sibtwin_tse.rds")
+tse <- readRDS("data/sibdata/sibtwin_tse.rds")
 tse <- tse[,!(colnames(tse) %in% c("T6A", "T6B", "T7A", "T7B", "T8A", "T8B", "T9A", "T9B", "T11A", "T11B", "T12A", "T12B", "T13A", "T13B"))]
 tse <- subsetByPrevalentFeatures(tse, rank = "Genus", prevalence = 20/100)
 di <- as.matrix(vegdist(t(assay(tse, "counts")), method="bray"))
@@ -270,7 +270,7 @@ library(magrittr)
 library(ggsignif)
 library(miaViz)
 
-tse <- readRDS("sibdata/sibtwin_tse.rds")
+tse <- readRDS("data/sibdata/sibtwin_tse.rds")
 
 tse <- tse[,!(colnames(tse) %in% c("T6A", "T6B", "T7A", "T7B", "T8A", "T8B", "T9A", "T9B", "T11A", "T11B", "T12A", "T12B", "T13A", "T13B"))]
 #tse <- agglomerateByPrevalence(tse,rank = "Phylum", prevalence = 10/100)
@@ -328,7 +328,7 @@ theme(text = element_text(size = 10)) + labs(x = "", y= "Bray-Curtis index", tit
 print(s1)
 
 ## at genus level
-tse <- readRDS("sibdata/sibtwin_tse.rds")
+tse <- readRDS("data/sibdata/sibtwin_tse.rds")
 tse <- tse[,!(colnames(tse) %in% c("T6A", "T6B", "T7A", "T7B", "T8A", "T8B", "T9A", "T9B", "T11A", "T11B", "T12A", "T12B", "T13A", "T13B"))]
 #tse <- subsetByPrevalentFeatures(tse, rank = "Genus", prevalence = 10/100)
 tse <- agglomerateByPrevalence(tse,rank = "Genus", prevalence = 10/100) 
@@ -679,7 +679,7 @@ library(magrittr)
 library(ggsignif)
 library(miaViz)
 
-tse <- readRDS("sibdata/sibtwin_tse.rds")
+tse <- readRDS("data/sibdata/sibtwin_tse.rds")
 
 # Calculate the list of sequencing depths across samples
 sequencing_depths <- colSums(assay(tse))
@@ -778,7 +778,7 @@ theme(text = element_text(size = 10)) + labs(x = "", y= "Bray-Curtis index", tit
 print(s1)
 
 ## at genus level
-tse <- readRDS("sibdata/sibtwin_tse.rds")
+tse <- readRDS("data/sibdata/sibtwin_tse.rds")
 # Calculate the list of sequencing depths across samples
 sequencing_depths <- colSums(assay(tse))
 # Calculate variation between highest and lowest sequencing depth
