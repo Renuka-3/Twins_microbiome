@@ -20,7 +20,7 @@ tse <- transformAssay(tse, assay.type = "counts", method = "relabundance")
 
 # Getting top taxa on a Phylum level
 tse <- agglomerateByRank(tse, rank ="Phylum")
-top_taxa <- getTop(tse, top = 3, assay.type = "relabundance")
+top_taxa <- getTop(tse, top = 3, assay.type = "relabundance", detection= 0.1, prevalence = 0.2)
 
 # Renaming the "Phylum" rank to keep only top taxa and the rest to "Other"
 phylum_renamed <- lapply(rowData(tse)$Phylum, function(x){
@@ -45,7 +45,7 @@ tse <- transformAssay(tse, assay.type = "counts", method = "relabundance")
 
 # Getting top taxa on a Genus level
 tse <- agglomerateByRank(tse, rank ="Genus")
-top_taxa <- getTop(tse, top = 5, assay.type = "relabundance")
+top_taxa <- getTop(tse, top = 5, assay.type = "relabundance", detection= 0.1, prevalence = 0.2)
 
 # Renaming the "Genus" rank to keep only top taxa and the rest to "Other"
 genus_renamed <- lapply(rowData(tse)$Genus, function(x){
@@ -86,10 +86,10 @@ rowData(altExp(tse, "Genus"))[["mean"]] <- rowData(altExp(tse, "Genus"))[["mean"
 # Calculate median
 rowData(altExp(tse, "Genus"))[["median"]] <- rowMedians(assay(altExp(tse, "Genus"), "relabundance"))
 
-# Get table,, order features based on median value, take only top 6
+# Get table,, order features based on median value, take only top 4
 df <- rowData(altExp(tse, "Genus"))
 df <- df[ order(df[["median"]], decreasing = TRUE), ]
-df[1:6, ]
+df[1:4, ]
 
 head(getPrevalence(tse, rank = "Genus", detection = 0.01/100, sort = TRUE,
                    assay.type = "counts", as_relative = TRUE))
@@ -167,7 +167,7 @@ a <- plotAbundance(
   labs(x = "Genus", y = "", title = "Pune") +
   scale_y_continuous(labels = scales::percent)
 
-print(a)
+#print(a)
 ### Nashik
 # 1. Subset to Nashik
 tse_na <- tse[, tse$Geographical_location == "Nashik"]
@@ -201,7 +201,7 @@ b <- plotAbundance(
   labs(x = "", y = "", title = "Nashik") +
   scale_y_continuous(labels = scales::percent)
 
-print(b)
+#print(b)
 ##ahmednagar
 tse_ahm <- tse[, tse$Geographical_location == "Ahmednagar"]
 
@@ -234,5 +234,5 @@ c <- plotAbundance(
   labs(x = "", y = "", title = "Ahmednagar") +
   scale_y_continuous(labels = scales::percent)
 
-print(c)
+#print(c)
 ```
