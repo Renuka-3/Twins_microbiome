@@ -2,7 +2,7 @@
 title: "Untitled"
 author: "Renuka"
 date: "2024-01-04"
-output: html_document
+output: md_document
 ---
 
 ## core- upated 
