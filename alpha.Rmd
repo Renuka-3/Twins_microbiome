@@ -2,7 +2,7 @@
 title: "alpha"
 author: "Renuka"
 date: "2023-12-30"
-output: html_document
+output: md_document
 ---
 
 
