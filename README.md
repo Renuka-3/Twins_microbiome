@@ -18,5 +18,3 @@ rmarkdown::render("TSE.Rmd")
 - **comparative analysis for twins, sibling and unrelated individuals** ([comparative_analysis.Rmd](comparative_analysis.Rmd)) | **Figure4** ([comparative_analysis.md](comparative_analysis.md)): A) twins non twins analysis at 20% prevalence. B) Twins, sibling and unrelated analysis at 20% prevalence.
 
 ### cite the code [![DOI](https://zenodo.org/badge/757274106.svg)](https://doi.org/10.5281/zenodo.14576498)
-
-- **microbiome** ([test.Rmd](test.Rmd)) | **Figure** ([test.md](test.md))
