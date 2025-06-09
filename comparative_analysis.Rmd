@@ -305,12 +305,12 @@ summarise(within_pairs=combn(Samples, 2, simplify = FALSE)) %>%
 dplyr::select(within_pairs) %>% .[[1]] %>% do.call(rbind, .) %>%
 as.data.frame() %>% `colnames<-`(c("ID_1", "ID_2"))
 unrel <- tse_sub[,!(colnames(tse_sub) %in% c("T1A", "T2A", "T3A", "T4A", "T5A", "T10A", "S1", "S3", "S5", "S7", "S9", "S11"))]
-colData(unrel)$Unr <- c("Unr1", "Unr2", "Unr3","Unr4", "Unr5", "Unr6", "Unr1","Unr2", "Unr3", "Unr4", "Unr5","Unr6")
+#colData(unrel)$Unr <- c("Unr1", "Unr2", "Unr3","Unr4", "Unr5", "Unr6", "Unr1","Unr2", "Unr3", "Unr4", "Unr5","Unr6")
 set.seed(123)
-unrel_pairs <- colData(unrel) %>% as_tibble() %>% group_by(Unr) %>%
-summarise(unrel_pairs=combn(Samples, 2, simplify = FALSE)) %>%
-dplyr::select(unrel_pairs) %>% .[[1]] %>% do.call(rbind, .) %>%
-as.data.frame() %>% `colnames<-`(c("Unr_1", "Unr_2"))
+#unrel_pairs <- colData(unrel) %>% as_tibble() %>% group_by(Unr) %>%
+#summarise(unrel_pairs=combn(Samples, 2, simplify = FALSE)) %>%
+#dplyr::select(unrel_pairs) %>% .[[1]] %>% do.call(rbind, .) %>%
+#as.data.frame() %>% `colnames<-`(c("Unr_1", "Unr_2"))
 combined <- rbind(
 merge(di, twin_pairs, by.x=c("X","Y"), by.y=c("ID_1", "ID_2")) %>%
 mutate(grp=rep("twin_pairs",nrow(twin_pairs))),
@@ -838,5 +838,5 @@ s <- ggplot(combined, aes(x = grp, y = value)) +
 #geom_signif(comparisons = list(c("twin_pairs", "within_pairs"), c("twin_pairs", "unrel_pairs"), c("unrel_pairs","within_pairs")), map_signif_level = FALSE) +
 theme(text = element_text(size = 10)) + labs(x = "", y= "Bray-Curtis index", title = "B") + scale_x_discrete(labels=c("twin_pairs" = "Twins", "within_pairs" = "Siblings", "unrel_pairs" = "Unrelated")) + theme_bw(base_size = 20)
 print(s)
-gridExtra::grid.arrange(s1, s, ncol = 2)
+#gridExtra::grid.arrange(s1, s, ncol = 2)
 ```
