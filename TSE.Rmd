@@ -13,15 +13,15 @@ library(mia)
 library(TreeSummarizedExperiment)
 
 # Read count data
-counts  <- read_excel("data/OTU.xlsx") # Abundance table (e.g. ASV data; to assay data)
-row.names(counts) <- counts$OTU 
-counts <- counts %>% select (-OTU)
+counts  <- read_excel("data/Abundancetable.xlsx") # Abundance table (e.g. ASV data; to assay data)
+row.names(counts) <- counts$ASV
+counts <- counts %>% select (-ASV)
 counts <- as.matrix(counts) # Count data must be a matrix
 
 # Read taxonomic table
-tax <- as.data.frame(read_excel("data/taxa.xlsx"))   # Taxonomy table (to rowData)
-row.names(tax) <- tax$OTU
-tax <- tax %>% select (-OTU) 
+tax <- as.data.frame(read_excel("data/Taxatable.xlsx"))   # Taxonomy table (to rowData)
+row.names(tax) <- tax$ASV
+tax <- tax %>% select (-ASV) 
 
 # Read sample metadata
 sampledata <- as.data.frame(read_excel("data/Metadata.xlsx"))   # Sample data (to colData)

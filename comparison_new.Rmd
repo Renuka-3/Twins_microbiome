@@ -1,0 +1,361 @@
+---
+title: "Untitled"
+output: md_document
+date: "2025-08-18"
+---
+
+## twins vs non-twin comparison using Bray-curtise index
+
+```{r TvNTBC, echo=FALSE, message=FALSE, warning=FALSE, error=FALSE}
+library(mia)
+library(vegan)
+library(scater)
+library(dplyr)
+library(tidyverse)
+library(magrittr)
+library(ggsignif)
+library(miaViz)
+tse <- readRDS("data/twins_tse.rds")
+
+di<- getDissimilarity(
+  x = tse,
+ method = "bray",
+ assay.type = "counts",
+ rarefy = TRUE,
+  niter = 100)
+di <-reshape2::melt(as.matrix(di)) %>% `colnames<-`(c("X","Y", "value"))
+
+
+#spling location-wise
+tse_list <- splitOn(tse, f= "Geographical_location")
+tse_Ahm <- tse_list[[1]]
+tse_Pune <- tse_list[[2]]
+tse_Nashik <- tse_list[[3]]
+set.seed(123)
+within_pairs <- colData(tse_Ahm) %>% as_tibble() %>% group_by(Pair) %>%
+summarise(within_pairs=combn(Samples, 2, simplify = FALSE)) %>%
+dplyr::select(within_pairs) %>% .[[1]] %>% do.call(rbind, .) %>%
+as.data.frame() %>% `colnames<-`(c("pair_1", "pair_2"))
+rand <- sample(nrow(within_pairs))
+between_pairs <- data.frame(pair_1=within_pairs$pair_1, pair_2=within_pairs$pair_2[rand])
+AN <- rbind(
+merge(di, within_pairs, by.x=c("X","Y"), by.y=c("pair_1", "pair_2")) %>%
+mutate(grp=rep("within_pairs",nrow(within_pairs))),
+merge(di, between_pairs, by.x=c("X","Y"), by.y=c("pair_1", "pair_2")) %>%
+mutate(grp=rep("between_pairs",nrow(between_pairs))))
+tse_Pune <- tse_list[[2]]
+set.seed(123)
+within_pairs <- colData(tse_Pune) %>% as_tibble() %>% group_by(Pair) %>%
+summarise(within_pairs=combn(Samples, 2, simplify = FALSE)) %>%
+dplyr::select(within_pairs) %>% .[[1]] %>% do.call(rbind, .) %>%
+as.data.frame() %>% `colnames<-`(c("pair_1", "pair_2"))
+rand <- sample(nrow(within_pairs))
+between_pairs <- data.frame(pair_1=within_pairs$pair_1, pair_2=within_pairs$pair_2[rand])
+PN <- rbind(
+merge(di, within_pairs, by.x=c("X","Y"), by.y=c("pair_1", "pair_2")) %>%
+mutate(grp=rep("within_pairs",nrow(within_pairs))),
+merge(di, between_pairs, by.x=c("X","Y"), by.y=c("pair_1", "pair_2")) %>%
+mutate(grp=rep("between_pairs",nrow(between_pairs))))
+tse_Nashik <- tse_list[[3]]
+set.seed(123)
+within_pairs <- colData(tse_Nashik) %>% as_tibble() %>% group_by(Pair) %>%
+summarise(within_pairs=combn(Samples, 2, simplify = FALSE)) %>%
+dplyr::select(within_pairs) %>% .[[1]] %>% do.call(rbind, .) %>%
+as.data.frame() %>% `colnames<-`(c("pair_1", "pair_2"))
+#rand <- sample(nrow(within_pairs))
+pl <- rev(order(within_pairs$pair_2))
+between_pairs <- data.frame(pair_1=within_pairs$pair_1, pair_2=within_pairs$pair_2[pl])
+NS <- rbind(
+merge(di, within_pairs, by.x=c("X","Y"), by.y=c("pair_1", "pair_2")) %>%
+mutate(grp=rep("within_pairs",nrow(within_pairs))),
+merge(di, between_pairs, by.x=c("X","Y"), by.y=c("pair_1", "pair_2")) %>%
+mutate(grp=rep("between_pairs",nrow(between_pairs))))
+mergedcities <- rbind(AN, PN, NS)
+mergedcities$City <- c(rep("Ahmednagar", nrow(AN)),  rep("Pune", nrow(PN)), rep("Nashik", nrow(NS)))
+mergedcities$grp <- factor(mergedcities$grp, levels = c("within_pairs", "between_pairs"))
+a1 <- ggplot(mergedcities, aes(x=grp,y=value))+
+geom_boxplot(outlier.shape = NA)+
+geom_jitter(aes(colour = City), width= 0.05, size= 2.0) +
+geom_signif(comparisons = list(c("within_pairs", "between_pairs")), map_signif_level = FALSE) +
+theme(text = element_text(size = 10)) + labs(x = "", y= "Bray-Curtis index", title = "A") + scale_x_discrete(labels=c("within_pairs" = "Twins", "between_pairs" = "Non-twins")) + theme_bw() + theme(text = element_text(size = 23), axis.text = element_text(size = 23), axis.title = element_text(size = 18)) + theme(legend.position ="bottom", legend.text = element_text(size=11), legend.title=element_text(size=13))
+print(a1)
+```
+
+## twins vs non-twin comparison using jaccard index
+
+```{r TvNT, echo=FALSE, warning=FALSE, message=FALSE}
+tse <- readRDS("data/twins_tse.rds")
+tse <- transformAssay(tse, method = "pa")
+
+di<- getDissimilarity(
+  x = tse,
+ method = "jaccard",
+ assay.type = "pa",
+ rarefy = TRUE,
+  niter = 100)
+di <-reshape2::melt(as.matrix(di)) %>% `colnames<-`(c("X","Y", "value"))
+
+
+#spling location-wise
+tse_list <- splitOn(tse, f= "Geographical_location")
+tse_Ahm <- tse_list[[1]]
+tse_Pune <- tse_list[[2]]
+tse_Nashik <- tse_list[[3]]
+set.seed(123)
+within_pairs <- colData(tse_Ahm) %>% as_tibble() %>% group_by(Pair) %>%
+summarise(within_pairs=combn(Samples, 2, simplify = FALSE)) %>%
+dplyr::select(within_pairs) %>% .[[1]] %>% do.call(rbind, .) %>%
+as.data.frame() %>% `colnames<-`(c("pair_1", "pair_2"))
+rand <- sample(nrow(within_pairs))
+between_pairs <- data.frame(pair_1=within_pairs$pair_1, pair_2=within_pairs$pair_2[rand])
+AN <- rbind(
+merge(di, within_pairs, by.x=c("X","Y"), by.y=c("pair_1", "pair_2")) %>%
+mutate(grp=rep("within_pairs",nrow(within_pairs))),
+merge(di, between_pairs, by.x=c("X","Y"), by.y=c("pair_1", "pair_2")) %>%
+mutate(grp=rep("between_pairs",nrow(between_pairs))))
+tse_Pune <- tse_list[[2]]
+set.seed(123)
+within_pairs <- colData(tse_Pune) %>% as_tibble() %>% group_by(Pair) %>%
+summarise(within_pairs=combn(Samples, 2, simplify = FALSE)) %>%
+dplyr::select(within_pairs) %>% .[[1]] %>% do.call(rbind, .) %>%
+as.data.frame() %>% `colnames<-`(c("pair_1", "pair_2"))
+rand <- sample(nrow(within_pairs))
+between_pairs <- data.frame(pair_1=within_pairs$pair_1, pair_2=within_pairs$pair_2[rand])
+PN <- rbind(
+merge(di, within_pairs, by.x=c("X","Y"), by.y=c("pair_1", "pair_2")) %>%
+mutate(grp=rep("within_pairs",nrow(within_pairs))),
+merge(di, between_pairs, by.x=c("X","Y"), by.y=c("pair_1", "pair_2")) %>%
+mutate(grp=rep("between_pairs",nrow(between_pairs))))
+tse_Nashik <- tse_list[[3]]
+set.seed(123)
+within_pairs <- colData(tse_Nashik) %>% as_tibble() %>% group_by(Pair) %>%
+summarise(within_pairs=combn(Samples, 2, simplify = FALSE)) %>%
+dplyr::select(within_pairs) %>% .[[1]] %>% do.call(rbind, .) %>%
+as.data.frame() %>% `colnames<-`(c("pair_1", "pair_2"))
+#rand <- sample(nrow(within_pairs))
+pl <- rev(order(within_pairs$pair_2))
+between_pairs <- data.frame(pair_1=within_pairs$pair_1, pair_2=within_pairs$pair_2[pl])
+NS <- rbind(
+merge(di, within_pairs, by.x=c("X","Y"), by.y=c("pair_1", "pair_2")) %>%
+mutate(grp=rep("within_pairs",nrow(within_pairs))),
+merge(di, between_pairs, by.x=c("X","Y"), by.y=c("pair_1", "pair_2")) %>%
+mutate(grp=rep("between_pairs",nrow(between_pairs))))
+mergedcities <- rbind(AN, PN, NS)
+mergedcities$City <- c(rep("Ahmednagar", nrow(AN)),  rep("Pune", nrow(PN)), rep("Nashik", nrow(NS)))
+mergedcities$grp <- factor(mergedcities$grp, levels = c("within_pairs", "between_pairs"))
+a2 <- ggplot(mergedcities, aes(x=grp,y=value))+
+geom_boxplot(outlier.shape = NA)+
+geom_jitter(aes(colour = City), width= 0.05, size= 2) +
+geom_signif(comparisons = list(c("within_pairs", "between_pairs")), map_signif_level = FALSE) +
+theme(text = element_text(size = 10)) + labs(x = "", y= "Jaccard index", title = "B") + scale_x_discrete(labels=c("within_pairs" = "Twins", "between_pairs" = "Non-twins")) + theme_bw() + theme(text = element_text(size = 23), axis.text = element_text(size = 23), axis.title = element_text(size = 18)) + theme(legend.position ="bottom", legend.text = element_text(size=11), legend.title=element_text(size=13))
+print(a2)
+gridExtra::grid.arrange(a1, a2, ncol = 2)
+```
+
+
+## twins vs non-twin comparison using Aitchison index
+
+```{r TvNTJ, echo=FALSE, warning=FALSE, message=FALSE}
+tse <- readRDS("data/twins_tse.rds")
+tse <- transformAssay( x = tse,assay.type = "counts",method = "clr",pseudocount = TRUE,name = "clr")
+
+di<- getDissimilarity(
+  x = tse,
+ method = "euclidean",
+ assay.type = "clr")
+di <-reshape2::melt(as.matrix(di)) %>% `colnames<-`(c("X","Y", "value"))
+
+
+#spling location-wise
+tse_list <- splitOn(tse, f= "Geographical_location")
+tse_Ahm <- tse_list[[1]]
+tse_Pune <- tse_list[[2]]
+tse_Nashik <- tse_list[[3]]
+set.seed(123)
+within_pairs <- colData(tse_Ahm) %>% as_tibble() %>% group_by(Pair) %>%
+summarise(within_pairs=combn(Samples, 2, simplify = FALSE)) %>%
+dplyr::select(within_pairs) %>% .[[1]] %>% do.call(rbind, .) %>%
+as.data.frame() %>% `colnames<-`(c("pair_1", "pair_2"))
+rand <- sample(nrow(within_pairs))
+between_pairs <- data.frame(pair_1=within_pairs$pair_1, pair_2=within_pairs$pair_2[rand])
+AN <- rbind(
+merge(di, within_pairs, by.x=c("X","Y"), by.y=c("pair_1", "pair_2")) %>%
+mutate(grp=rep("within_pairs",nrow(within_pairs))),
+merge(di, between_pairs, by.x=c("X","Y"), by.y=c("pair_1", "pair_2")) %>%
+mutate(grp=rep("between_pairs",nrow(between_pairs))))
+tse_Pune <- tse_list[[2]]
+set.seed(123)
+within_pairs <- colData(tse_Pune) %>% as_tibble() %>% group_by(Pair) %>%
+summarise(within_pairs=combn(Samples, 2, simplify = FALSE)) %>%
+dplyr::select(within_pairs) %>% .[[1]] %>% do.call(rbind, .) %>%
+as.data.frame() %>% `colnames<-`(c("pair_1", "pair_2"))
+rand <- sample(nrow(within_pairs))
+between_pairs <- data.frame(pair_1=within_pairs$pair_1, pair_2=within_pairs$pair_2[rand])
+PN <- rbind(
+merge(di, within_pairs, by.x=c("X","Y"), by.y=c("pair_1", "pair_2")) %>%
+mutate(grp=rep("within_pairs",nrow(within_pairs))),
+merge(di, between_pairs, by.x=c("X","Y"), by.y=c("pair_1", "pair_2")) %>%
+mutate(grp=rep("between_pairs",nrow(between_pairs))))
+tse_Nashik <- tse_list[[3]]
+set.seed(123)
+within_pairs <- colData(tse_Nashik) %>% as_tibble() %>% group_by(Pair) %>%
+summarise(within_pairs=combn(Samples, 2, simplify = FALSE)) %>%
+dplyr::select(within_pairs) %>% .[[1]] %>% do.call(rbind, .) %>%
+as.data.frame() %>% `colnames<-`(c("pair_1", "pair_2"))
+#rand <- sample(nrow(within_pairs))
+pl <- rev(order(within_pairs$pair_2))
+between_pairs <- data.frame(pair_1=within_pairs$pair_1, pair_2=within_pairs$pair_2[pl])
+NS <- rbind(
+merge(di, within_pairs, by.x=c("X","Y"), by.y=c("pair_1", "pair_2")) %>%
+mutate(grp=rep("within_pairs",nrow(within_pairs))),
+merge(di, between_pairs, by.x=c("X","Y"), by.y=c("pair_1", "pair_2")) %>%
+mutate(grp=rep("between_pairs",nrow(between_pairs))))
+mergedcities <- rbind(AN, PN, NS)
+mergedcities$City <- c(rep("Ahmednagar", nrow(AN)),  rep("Pune", nrow(PN)), rep("Nashik", nrow(NS)))
+mergedcities$grp <- factor(mergedcities$grp, levels = c("within_pairs", "between_pairs"))
+a2 <- ggplot(mergedcities, aes(x=grp,y=value))+
+geom_boxplot(outlier.shape = NA)+
+geom_jitter(aes(colour = City), width= 0.05, size= 2) +
+geom_signif(comparisons = list(c("within_pairs", "between_pairs")), map_signif_level = FALSE) +
+theme(text = element_text(size = 10)) + labs(x = "", y= "Jaccard index", title = "B") + scale_x_discrete(labels=c("within_pairs" = "Twins", "between_pairs" = "Non-twins")) + theme_bw() + theme(text = element_text(size = 23), axis.text = element_text(size = 23), axis.title = element_text(size = 18)) + theme(legend.position ="bottom", legend.text = element_text(size=12))
+print(a2)
+```
+
+## twins vs sib vs unrelated individual comparison using Bray-Curtise index
+
+```{r rare, echo=FALSE, message=FALSE, warning=FALSE, error=FALSE}
+library(mia)
+library(vegan)
+library(scater)
+library(dplyr)
+library(tidyverse)
+library(magrittr)
+library(ggsignif)
+library(miaViz)
+
+tse <- readRDS("data/sibdata/sibtwin_tse.rds")
+
+tse <- tse[,!(colnames(tse) %in% c("T6A", "T6B", "T7A", "T7B", "T8A", "T8B", "T9A", "T9B", "T11A", "T11B", "T12A", "T12B", "T13A", "T13B"))]
+
+di<- getDissimilarity(
+  x = tse,
+ method = "bray",
+ assay.type = "counts",
+ rarefy = TRUE,
+  niter = 100)
+di <-reshape2::melt(as.matrix(di)) %>% `colnames<-`(c("X","Y", "value"))
+
+#di <- as.matrix(vegdist(t(assay(tse_sub, "counts")), method="bray"))
+#di <- reshape2::melt(di) %>% `colnames<-`(c("X","Y", "value"))
+
+# split tse by twins and sibling
+tse_list <- splitOn(tse, f= "Pair")
+tse_twin <- tse_list[[1]]
+tse_sib <- tse_list[[2]]
+set.seed(123)
+twin_pairs <- colData(tse_twin) %>% as_tibble() %>% group_by(ID) %>%
+summarise(twin_pairs=combn(Samples, 2, simplify = FALSE)) %>%
+dplyr::select(twin_pairs) %>% .[[1]] %>% do.call(rbind, .) %>%
+as.data.frame() %>% `colnames<-`(c("ID_1", "ID_2"))
+set.seed(123)
+within_pairs <- colData(tse_sib) %>% as_tibble() %>% group_by(ID) %>%
+summarise(within_pairs=combn(Samples, 2, simplify = FALSE)) %>%
+dplyr::select(within_pairs) %>% .[[1]] %>% do.call(rbind, .) %>%
+as.data.frame() %>% `colnames<-`(c("ID_1", "ID_2"))
+unrel <- tse_sub[,!(colnames(tse_sub) %in% c("T1A", "T2A", "T3A", "T4A", "T5A", "T10A", "S1", "S3", "S5", "S7", "S9", "S11"))]
+#colData(unrel)$Unr <- c("Unr1", "Unr2", "Unr3","Unr4", "Unr5", "Unr6", "Unr1","Unr2", "Unr3", "Unr4", "Unr5","Unr6")
+set.seed(123)
+#unrel_pairs <- colData(unrel) %>% as_tibble() %>% group_by(Unr) %>%
+#summarise(unrel_pairs=combn(Samples, 2, simplify = FALSE)) %>%
+#dplyr::select(unrel_pairs) %>% .[[1]] %>% do.call(rbind, .) %>%
+#as.data.frame() %>% `colnames<-`(c("Unr_1", "Unr_2"))
+combined <- rbind(
+merge(di, twin_pairs, by.x=c("X","Y"), by.y=c("ID_1", "ID_2")) %>%
+mutate(grp=rep("twin_pairs",nrow(twin_pairs))),
+merge(di, within_pairs, by.x=c("X","Y"), by.y=c("ID_1", "ID_2")) %>%
+mutate(grp=rep("within_pairs",nrow(within_pairs))),
+merge(di, unrel_pairs, by.x=c("X","Y"), by.y=c("Unr_1", "Unr_2")) %>%
+mutate(grp=rep("unrel_pairs",nrow(within_pairs))))
+
+combined$grp <- factor(combined$grp, levels = c("unrel_pairs", "within_pairs", "twin_pairs"))
+s1 <- ggplot(combined, aes(x = grp, y = value)) +
+ geom_boxplot(outlier.shape = NA, lwd=0.8)+ geom_jitter(width= 0.05, size= 1.7)+
+#geom_jitter(aes(colour = grp), width= 0.05, size= 1.7) +
+geom_signif(comparisons = list(c("twin_pairs", "within_pairs"), c("twin_pairs", "unrel_pairs"), c("unrel_pairs","within_pairs")), map_signif_level = FALSE) +
+theme(text = element_text(size = 10)) + labs(x = "", y= "Bray-Curtis index", title = "A") + scale_x_discrete(labels=c("unrel_pairs" = "Unrelated", "within_pairs" = "Siblings", "twin_pairs" = "Twins")) + theme_bw(base_size = 20)
+print(s1)
+```
+
+## twins vs sib vs unrelated individual comparison using jaccard index
+
+```{r TvSvUn, echo=FALSE, warning=FALSE, message=FALSE}
+library(mia)
+library(vegan)
+library(scater)
+library(dplyr)
+library(tidyverse)
+library(magrittr)
+library(ggsignif)
+library(miaViz)
+tse <- readRDS("data/sibdata/sibtwin_tse.rds")
+tse <- transformAssay(tse, method = "pa")
+tse <- tse[,!(colnames(tse) %in% c("T6A", "T6B", "T7A", "T7B", "T8A", "T8B", "T9A", "T9B", "T11A", "T11B", "T12A", "T12B", "T13A", "T13B"))]
+di<- getDissimilarity(
+x = tse,
+method = "jaccard",
+assay.type = "pa",
+rarefy = TRUE,
+niter=100)
+di <-reshape2::melt(as.matrix(di)) %>% `colnames<-`(c("X","Y", "value"))
+# split tse by twins and sibling
+tse_list <- splitOn(tse, f= "Pair")
+tse_twin <- tse_list[[1]]
+tse_sib <- tse_list[[2]]
+set.seed(123)
+twin_pairs <- colData(tse_twin) %>% as_tibble() %>% group_by(ID) %>%
+summarise(twin_pairs=combn(Samples, 2, simplify = FALSE)) %>%
+dplyr::select(twin_pairs) %>% .[[1]] %>% do.call(rbind, .) %>%
+as.data.frame() %>% `colnames<-`(c("ID_1", "ID_2"))
+set.seed(123)
+within_pairs <- colData(tse_sib) %>% as_tibble() %>% group_by(ID) %>%
+summarise(within_pairs=combn(Samples, 2, simplify = FALSE)) %>%
+dplyr::select(within_pairs) %>% .[[1]] %>% do.call(rbind, .) %>%
+as.data.frame() %>% `colnames<-`(c("ID_1", "ID_2"))
+unrel <- tse_sub[,!(colnames(tse_sub) %in% c("T1A", "T2A", "T3A", "T4A", "T5A", "T10A", "S1", "S3", "S5", "S7", "S9", "S11"))]
+#colData(unrel)$Unr <- c("Unr1", "Unr2", "Unr3","Unr4", "Unr5", "Unr6", "Unr1","Unr2", "Unr3", "Unr4", "Unr5","Unr6")
+set.seed(123)
+#unrel_pairs <- colData(unrel) %>% as_tibble() %>% group_by(Unr) %>%
+#summarise(unrel_pairs=combn(Samples, 2, simplify = FALSE)) %>%
+#dplyr::select(unrel_pairs) %>% .[[1]] %>% do.call(rbind, .) %>%
+#as.data.frame() %>% `colnames<-`(c("Unr_1", "Unr_2"))
+combined <- rbind(
+merge(di, twin_pairs, by.x=c("X","Y"), by.y=c("ID_1", "ID_2")) %>%
+mutate(grp=rep("twin_pairs",nrow(twin_pairs))),
+merge(di, within_pairs, by.x=c("X","Y"), by.y=c("ID_1", "ID_2")) %>%
+mutate(grp=rep("within_pairs",nrow(within_pairs))),
+merge(di, unrel_pairs, by.x=c("X","Y"), by.y=c("Unr_1", "Unr_2")) %>%
+mutate(grp=rep("unrel_pairs",nrow(within_pairs))))
+combined$grp <- factor(combined$grp, levels = c("unrel_pairs", "within_pairs", "twin_pairs"))
+s2 <- ggplot(combined, aes(x = grp, y = value)) +
+geom_boxplot(outlier.shape = NA, lwd=0.8)+ geom_jitter(width= 0.05, size= 1.7)+
+##geom_signif(comparisons = list(c("twin_pairs", "within_pairs"), c("twin_pairs", "unrel_pairs"), c("unrel_pairs","within_pairs")), map_signif_level = function(p) sprintf("%.2f", p)) +
+geom_bracket(
+    xmin       = "twin_pairs", xmax = "within_pairs", 
+    y.position = 0.98, 
+    label      = "0.002"
+  ) +
+  geom_bracket(
+    xmin       = "twin_pairs", xmax = "unrel_pairs", 
+    y.position = 0.98,
+    label      = "0.59"
+  ) +
+  geom_bracket(
+    xmin       = "unrel_pairs", xmax = "within_pairs", 
+    y.position = 0.98,
+    label      = "0.02"
+  ) +
+  theme_bw(base_size = 20) +
+theme(text = element_text(size = 10)) + labs(x = "", y= "Jaccard index", title = "B") + scale_x_discrete(labels=c("unrel_pairs" = "Unrelated", "within_pairs" = "Siblings", "twin_pairs" = "Twins")) + theme_bw(base_size = 20)
+print(s2)
+gridExtra::grid.arrange(s1, s2, ncol = 2)
+```

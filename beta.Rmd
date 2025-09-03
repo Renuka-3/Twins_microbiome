@@ -5,8 +5,6 @@ date: "2023-12-30"
 output: md_document
 ---
 
-
-
 ```{r beta, echo=FALSE, message=FALSE, warning=FALSE, error=FALSE}
 library(mia)
 library(vegan)
@@ -33,7 +31,6 @@ temp <- anova(
         group = colData(tse)[,"Geographical_location"]))
 
 
-
 set.seed(1576)
 
 # We choose 999 random permutations
@@ -46,34 +43,35 @@ head(permanova)
 ```
 
 ```{r b, echo=FALSE, message=FALSE, warning=FALSE, error=FALSE}
-twins_tse <- readRDS("data/twins_tse.rds")
-tse <- transformCounts(twins_tse, method = "relabundance")
+#twins_tse <- readRDS("data/twins_tse.rds")
+#tse <- transformCounts(twins_tse, method = "relabundance")
 
 # Quantify dissimilarities in the original feature space
 
-x <- assay(tse, "relabundance") # Pick relabunance assay separately
-d0 <- as.matrix(vegdist(t(x), "bray"))
+#x <- assay(tse, "relabundance") # Pick relabunance assay separately
+#d0 <- as.matrix(vegdist(t(x), "bray"))
 # PCoA Ordination
-pcoa <- as.data.frame(cmdscale(d0, k = 2))
-names(pcoa) <- c("PCoA1", "PCoA2")
+#pcoa <- as.data.frame(cmdscale(d0, k = 2))
+#names(pcoa) <- c("PCoA1", "PCoA2")
 # Quantify dissimilarities in the ordination space
-dp <- as.matrix(dist(pcoa))
+#dp <- as.matrix(dist(pcoa))
 # Calculate stress i.e. relative difference in the original and
 # projected dissimilarities
-stress <- sum((dp - d0)^2)/sum(d0^2)
-ord <- order(as.vector(d0))
-df <- data.frame(d0 = as.vector(d0)[ord],
-                  dmds = as.vector(dp)[ord])
-i<- ggplot(aes(x = d0, y = dmds), data=df) + 
-       geom_smooth() +
-       geom_point() +       
-       labs(title = "Shepard plot",
-       x = "Original distance",
-       y = "MDS distance",       
-            subtitle = paste("Stress:", round(stress, 2))) +
-  theme_bw()
+#stress <- sum((dp - d0)^2)/sum(d0^2)
+#ord <- order(as.vector(d0))
+#df <- data.frame(d0 = as.vector(d0)[ord],
+#                  dmds = as.vector(dp)[ord])
+#i<- ggplot(aes(x = d0, y = dmds), data=df) + 
+#       geom_smooth() +
+#       geom_point() +       
+   #    labs(title = "Shepard plot",
+   #    x = "Original distance",
+  #     y = "MDS distance",       
+ #           subtitle = paste("Stress:", round(stress, 2))) +
+#  theme_bw()
 
 #library(scater)
+twins_tse <- readRDS("data/twins_tse.rds")
 tse <- transformSamples(tse, method = "relabundance")
 tse <- runMDS(tse, FUN = vegan::vegdist, method = "bray", name = "PCoA_BC", exprs_values = "relabundance")
 
@@ -83,8 +81,8 @@ p <- plotReducedDim(tse, "PCoA_BC", colour_by = "Geographical_location", point_s
 e <- attr(reducedDim(tse, "PCoA_BC"), "eig");
 rel_eig <- e/sum(e[e>0])          
 p <- p + labs(x = paste("PCoA 1 (", round(100 * rel_eig[[1]],1), "%", ")", sep = ""),
-              y = paste("PCoA 2 (", round(100 * rel_eig[[2]],1), "%", ")", sep = ""), title= "a. Geographical location") + 
-   theme(legend.text=element_text(size=9)) + theme(axis.text.x = element_text(size=8), axis.text.y = element_text(size = 8)) + theme(axis.title = element_text(size = 10), plot.title = element_text(size = 15))  + theme(legend.position ="bottom")
+              y = paste("PCoA 2 (", round(100 * rel_eig[[2]],1), "%", ")", sep = ""), title= "a. Geographical location") + theme(legend.text=element_text(size=5)) + theme(axis.text.x = element_text(size=8), axis.text.y = element_text(size = 8)) + theme(axis.title = element_text(size = 10), plot.title = element_text(size = 15)) + theme(legend.box.spacing = unit(5, "pt"), legend.margin=margin(10,10,10,10)) + theme(legend.position ="bottom", legend.text = element_text(size=10))
+   #theme(legend.text=element_text(size=9)) + theme(axis.text.x = element_text(size=8), axis.text.y = element_text(size = 8)) + theme(axis.title = element_text(size = 10), plot.title = element_text(size = 15))  + theme(legend.position ="bottom")
 #print(p)
 
 
@@ -93,7 +91,9 @@ p1 <- plotReducedDim(tse, "PCoA_BC", colour_by = "Diet", point_size= 2.5)
 e <- attr(reducedDim(tse, "PCoA_BC"), "eig");
 rel_eig <- e/sum(e[e>0])          
 p1 <- p1 + labs(x = paste("PCoA 1 (", round(100 * rel_eig[[1]],1), "%", ")", sep = ""),
-              y = paste("PCoA 2 (", round(100 * rel_eig[[2]],1), "%", ")", sep = ""), title= "b. Diet") + theme( legend.text=element_text(size=5)) + theme(axis.text.x = element_text(size=8), axis.text.y = element_text(size = 12)) + theme(axis.title = element_text(size = 12), plot.title = element_text(size = 15)) + theme(legend.position ="bottom", legend.text = element_text(size=10)) #+ theme(legend.box.spacing = unit(5, "pt"), legend.margin=margin(10,10,10,10))  #+labs(tag = "A")
+              y = paste("PCoA 2 (", round(100 * rel_eig[[2]],1), "%", ")", sep = ""), title= "b. Diet") + 
+  theme(legend.text=element_text(size=5)) + theme(axis.text.x = element_text(size=8), axis.text.y = element_text(size = 8)) + theme(axis.title = element_text(size = 10), plot.title = element_text(size = 15)) + theme(legend.box.spacing = unit(5, "pt"), legend.margin=margin(10,10,10,10)) + theme(legend.position ="bottom", legend.text = element_text(size=10))
+  #theme(legend.text=element_text(size=5)) + theme(axis.text.x = element_text(size=8), axis.text.y = element_text(size = 12)) + theme(axis.title = element_text(size = 12), plot.title = element_text(size = 15)) + theme(legend.position ="bottom", legend.text = element_text(size=10)) 
 
 # Create ggplot object for Gender
 p2 <- plotReducedDim(tse, "PCoA_BC", colour_by = "Gender", point_size= 2.5)
@@ -105,3 +105,129 @@ p2 <- p2 + labs(x = paste("PCoA 1 (", round(100 * rel_eig[[1]],1), "%", ")", sep
 gridExtra::grid.arrange(p, p1, p2, ncol = 3)
 ```
  
+# Jaccard
+
+```{r permanovaJaccard, echo=FALSE, warning=FALSE, message=FALSE}
+## PERMANOVA analysis
+tse <- readRDS("data/twins_tse.rds")
+
+# Agglomerate data to genus level
+tse <- agglomerateByRank(tse, rank = "Genus")
+
+# Transform data to presence/absence (0/1)
+tse <- transformSamples(tse, method = "pa")
+
+# Compute Jaccard distance on transposed presence/absence assay
+pa_matrix <- t(assay(tse, "pa"))
+jaccard_dist <- vegdist(pa_matrix, method = "jaccard", binary = TRUE)
+
+
+# Set seed for reproducibility
+
+set.seed(413)
+temp <- anova(
+    betadisper( 
+        vegdist(t(assay(tse,"pa")), method = "jaccard"),
+        group = colData(tse)[,"Geographical_location"]))
+
+
+set.seed(1576)
+
+# We choose 999 random permutations
+permanova <- adonis2(t(assay(tse,"pa")) ~ Geographical_location + Diet + Gender,
+                     by = "margin", 
+                     data = colData(tse),
+                     method = "jaccard",
+                     permutations = 999)
+head(permanova)
+```
+#PCoA
+
+```{r PCoAJaccard, echo=FALSE, warning=FALSE, message=FALSE}
+twins_tse <- readRDS("data/twins_tse.rds")
+tse <- transformSamples(tse, method = "pa")
+tse <- runMDS(tse, FUN = vegan::vegdist, method = "jaccard", name = "PCoA_J", exprs_values = "pa")
+
+# Create ggplot object for location 
+p3 <- plotReducedDim(tse, "PCoA_J", colour_by = "Geographical_location", point_size= 2.5)
+# Add explained variance for each axis
+e <- attr(reducedDim(tse, "PCoA_J"), "eig");
+rel_eig <- e/sum(e[e>0])          
+p3 <- p3 + labs(x = paste("PCoA 1 (", round(100 * rel_eig[[1]],1), "%", ")", sep = ""),
+              y = paste("PCoA 2 (", round(100 * rel_eig[[2]],1), "%", ")", sep = ""), title= "a. Geographical location") + 
+   theme(legend.text=element_text(size=5)) + theme(axis.text.x = element_text(size=8), axis.text.y = element_text(size = 8)) + theme(axis.title = element_text(size = 10), plot.title = element_text(size = 15)) + theme(legend.box.spacing = unit(5, "pt"), legend.margin=margin(10,10,10,10)) + theme(legend.position ="bottom", legend.text = element_text(size=10))
+
+
+# Create ggplot object for Diet
+p4 <- plotReducedDim(tse, "PCoA_J", colour_by = "Diet", point_size= 2.5)
+e <- attr(reducedDim(tse, "PCoA_J"), "eig");
+rel_eig <- e/sum(e[e>0])          
+p4<- p4 + labs(x = paste("PCoA 1 (", round(100 * rel_eig[[1]],1), "%", ")", sep = ""),
+              y = paste("PCoA 2 (", round(100 * rel_eig[[2]],1), "%", ")", sep = ""), title= "b. Diet") + theme(legend.text=element_text(size=5)) + theme(axis.text.x = element_text(size=8), axis.text.y = element_text(size = 8)) + theme(axis.title = element_text(size = 10), plot.title = element_text(size = 15)) + theme(legend.box.spacing = unit(5, "pt"), legend.margin=margin(10,10,10,10)) + theme(legend.position ="bottom", legend.text = element_text(size=10))
+
+# Create ggplot object for Gender
+p5 <- plotReducedDim(tse, "PCoA_J", colour_by = "Gender", point_size= 2.5)
+e <- attr(reducedDim(tse, "PCoA_J"), "eig");
+rel_eig <- e/sum(e[e>0])          
+p5 <- p5 + labs(x = paste("PCoA 1 (", round(100 * rel_eig[[1]],1), "%", ")", sep = ""),
+              y = paste("PCoA 2 (", round(100 * rel_eig[[2]],1), "%", ")", sep = ""), title= "c. Gender") + theme(legend.text=element_text(size=5)) + theme(axis.text.x = element_text(size=8), axis.text.y = element_text(size = 8)) + theme(axis.title = element_text(size = 10), plot.title = element_text(size = 15)) + theme(legend.box.spacing = unit(5, "pt"), legend.margin=margin(10,10,10,10)) + theme(legend.position ="bottom", legend.text = element_text(size=10))
+gridExtra::grid.arrange(p3, p4, p5, ncol = 3)
+gridExtra::grid.arrange(p, p1, p2, p3, p4, p5, ncol = 3)
+```
+
+
+# Aitchison
+
+```{r permanovaAitchison, echo=FALSE, warning=FALSE, message=FALSE}
+## PERMANOVA analysis
+tse <- readRDS("data/twins_tse.rds")
+
+# Agglomerate data to genus level
+tse <- agglomerateByRank(tse, rank = "Genus")
+
+# Transform data to clr
+tse <- transformAssay(tse, assay.type = "counts", method = "clr", pseudocount = 1)
+
+
+# Set seed for reproducibility
+set.seed(1576)
+
+# We choose 999 random permutations
+permanova <- adonis2(t(assay(tse,"clr")) ~ Geographical_location + Diet + Gender,
+                     by = "margin", 
+                     data = colData(tse),
+                     method = "euclidean",
+                     permutations = 999)
+head(permanova)
+
+#PCoA
+twins_tse <- readRDS("data/twins_tse.rds")
+tse <- transformSamples(tse, method = "clr", pseudocount = 1)
+tse <- runMDS(tse, FUN = getDissimilarity, method = "euclidean",assay.type = "clr",name = "MDS_aitchison")
+
+# Create ggplot object for location 
+p <- plotReducedDim(tse, "MDS_aitchison", colour_by = "Geographical_location", point_size= 2.5)
+# Add explained variance for each axis
+e <- attr(reducedDim(tse, "MDS_aitchison"), "eig");
+rel_eig <- e/sum(e[e>0])          
+p <- p + labs(x = paste("PCoA 1 (", round(100 * rel_eig[[1]],1), "%", ")", sep = ""),
+              y = paste("PCoA 2 (", round(100 * rel_eig[[2]],1), "%", ")", sep = ""), title= "a. Geographical location") + 
+   theme(legend.text=element_text(size=9)) + theme(axis.text.x = element_text(size=8), axis.text.y = element_text(size = 8)) + theme(axis.title = element_text(size = 10), plot.title = element_text(size = 15))  + theme(legend.position ="bottom")
+#print(p)
+
+# Create ggplot object for Diet
+p1 <- plotReducedDim(tse, "MDS_aitchison", colour_by = "Diet", point_size= 2.5)
+e <- attr(reducedDim(tse, "MDS_aitchison"), "eig");
+rel_eig <- e/sum(e[e>0])          
+p1 <- p1 + labs(x = paste("PCoA 1 (", round(100 * rel_eig[[1]],1), "%", ")", sep = ""),
+              y = paste("PCoA 2 (", round(100 * rel_eig[[2]],1), "%", ")", sep = ""), title= "b. Diet") + theme( legend.text=element_text(size=5)) + theme(axis.text.x = element_text(size=8), axis.text.y = element_text(size = 12)) + theme(axis.title = element_text(size = 12), plot.title = element_text(size = 15)) + theme(legend.position ="bottom", legend.text = element_text(size=10)) #+ theme(legend.box.spacing = unit(5, "pt"), legend.margin=margin(10,10,10,10))  #+labs(tag = "A")
+
+# Create ggplot object for Gender
+p2 <- plotReducedDim(tse, "MDS_aitchison", colour_by = "Gender", point_size= 2.5)
+e <- attr(reducedDim(tse, "MDS_aitchison"), "eig");
+rel_eig <- e/sum(e[e>0])          
+p2 <- p2 + labs(x = paste("PCoA 1 (", round(100 * rel_eig[[1]],1), "%", ")", sep = ""),
+              y = paste("PCoA 2 (", round(100 * rel_eig[[2]],1), "%", ")", sep = ""), title= "c. Gender") + theme(legend.text=element_text(size=5)) + theme(axis.text.x = element_text(size=8), axis.text.y = element_text(size = 8)) + theme(axis.title = element_text(size = 10), plot.title = element_text(size = 15)) + theme(legend.box.spacing = unit(5, "pt"), legend.margin=margin(10,10,10,10)) + theme(legend.position ="bottom", legend.text = element_text(size=10))
+
+gridExtra::grid.arrange(p, p1, p2, ncol = 3)
+```

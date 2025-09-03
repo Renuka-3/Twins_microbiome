@@ -258,7 +258,7 @@ theme(text = element_text(size = 10)) + labs(x = "", y= "Bray-Curtis index", tit
 
 
 ##working##
-#  Comparative analysis between Twins, siblings and unrelated pairs at phylum level (rarefraction)
+#  Comparative analysis between Twins, siblings and unrelated pairs (rarefraction)
 
 ```{r rare, echo=FALSE, message=FALSE, warning=FALSE, error=FALSE}
 library(mia)
