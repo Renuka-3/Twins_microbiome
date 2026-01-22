@@ -24,11 +24,11 @@ tse <- transformSamples(tse, method = "relabundance")
 tse <- agglomerateByRank(tse, rank = "Genus")
 # Set seed for reproducibility
 
-set.seed(413)
-temp <- anova(
-    betadisper( 
-        vegdist(t(assay(tse,"relabundance")), method = "bray"),
-        group = colData(tse)[,"Geographical_location"]))
+#set.seed(413)
+#temp <- anova(
+#    betadisper( 
+#        vegdist(t(assay(tse,"relabundance")), method = "bray"),
+#        group = colData(tse)[,"Geographical_location"]))
 
 
 set.seed(1576)
@@ -40,6 +40,28 @@ permanova <- adonis2(t(assay(tse,"relabundance")) ~ Geographical_location + Diet
                      method = "bray",
                      permutations = 999)
 head(permanova)
+##########
+
+tseE <- tse[,!(colnames(tse) %in% c("T1B", "T2A", "T3B", "T4A", "T5B", "T6A", "T7A", "T8A", "T9A", "T10A", "T11B", "T12A", "T13B"))]
+#set.seed(1234)
+set.seed(2123)
+#set.seed(3214)
+permanova <- adonis2(t(assay(tseE,"relabundance")) ~ Geographical_location + Diet + Gender,
+                     by = "margin", 
+                     data = colData(tseE),
+                     method = "bray",
+                     permutations = 999)
+head(permanova)
+
+#tseF <- tse[,!(colnames(tse) %in% c("T1A", "T2B", "T3A", "T4B", "T5A", "T6B", "T7B", "T8B", "T9B", "T10B", "T11A", "T12B", "T13A"))]
+#set.seed(1234)
+#set.seed(3214)
+#permanova <- adonis2(t(assay(tseF,"relabundance")) ~ Geographical_location  + Diet + Gender,
+#                     by = "margin", 
+#                     data = colData(tseF),
+#                     method = "bray",
+#                     permutations = 999)
+#head(permanova)
 ```
 
 ```{r b, echo=FALSE, message=FALSE, warning=FALSE, error=FALSE}
@@ -71,20 +93,78 @@ head(permanova)
 #  theme_bw()
 
 #library(scater)
+#################################################################################3
+#worked
+library(ggplot2)
+library(scater)
+
+# Run PCoA
 twins_tse <- readRDS("data/twins_tse.rds")
 tse <- transformSamples(tse, method = "relabundance")
-tse <- runMDS(tse, FUN = vegan::vegdist, method = "bray", name = "PCoA_BC", exprs_values = "relabundance")
+tse <- runMDS(tse, FUN = vegan::vegdist, method = "bray", 
+              name = "PCoA_BC", exprs_values = "relabundance")
 
-# Create ggplot object for location 
-p <- plotReducedDim(tse, "PCoA_BC", colour_by = "Geographical_location", point_size= 2.5)
-# Add explained variance for each axis
-e <- attr(reducedDim(tse, "PCoA_BC"), "eig");
-rel_eig <- e/sum(e[e>0])          
-p <- p + labs(x = paste("PCoA 1 (", round(100 * rel_eig[[1]],1), "%", ")", sep = ""),
-              y = paste("PCoA 2 (", round(100 * rel_eig[[2]],1), "%", ")", sep = ""), title= "a. Geographical location") + theme(legend.text=element_text(size=5)) + theme(axis.text.x = element_text(size=8), axis.text.y = element_text(size = 8)) + theme(axis.title = element_text(size = 10), plot.title = element_text(size = 15)) + theme(legend.box.spacing = unit(5, "pt"), legend.margin=margin(10,10,10,10)) + theme(legend.position ="bottom", legend.text = element_text(size=10))
-   #theme(legend.text=element_text(size=9)) + theme(axis.text.x = element_text(size=8), axis.text.y = element_text(size = 8)) + theme(axis.title = element_text(size = 10), plot.title = element_text(size = 15))  + theme(legend.position ="bottom")
-#print(p)
+# Extract coordinates + metadata
+library(ggplot2)
 
+# Extract coords + metadata
+coords <- as.data.frame(reducedDim(tse, "PCoA_BC"))
+coords$Geographical_location <- colData(tse)$Geographical_location
+
+# Automatically detect first two dimensions
+xvar <- colnames(coords)[1]
+yvar <- colnames(coords)[2]
+
+# Explained variance
+e <- attr(reducedDim(tse, "PCoA_BC"), "eig")
+rel_eig <- e/sum(e[e>0])
+
+# Plot
+p <- ggplot(coords, aes_string(x = xvar, y = yvar, color = "Geographical_location")) +
+  geom_point(size = 2.5) +
+  stat_ellipse(aes_string(fill = "Geographical_location"),
+               geom = "polygon", alpha = 0.15, show.legend = FALSE) +
+
+  scale_color_manual(values = c(
+    "Nashik"      = "#2CA02C",
+    "Ahmednagar"  = "orange",
+    "Pune"        = "#1F77B4"
+  )) +
+  scale_fill_manual(values = c(
+    "Nashik"      = "#2CA02C",
+    "Ahmednagar"  = "orange",
+    "Pune"        = "#1F77B4"
+  )) +
+
+  # Rename axes
+  labs(x = paste("PCoA1 (", round(100 * rel_eig[1], 1), "%)", sep = ""),
+       y = paste("PCoA2 (", round(100 * rel_eig[2], 1), "%)", sep = ""),
+       title = "a. Geographical location") +
+
+  # Clean theme (no background fill, no grid)
+  theme_minimal() +
+  theme(
+    #panel.background = element_blank(),
+    #plot.background  = element_blank(),
+    panel.grid.major = element_blank(),panel.grid.minor = element_blank(),axis.line = element_line(color = "black"),axis.text = element_text(size = 13),axis.title = element_text(size = 13),plot.title = element_text(size = 16),legend.position = "bottom",legend.text = element_text(size = 10)
+  )
+
+print(p)
+
+coords$Pair <- factor(colData(tse)$Pair)
+shape.values <- c(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12)
+l<- ggplot(coords, aes_string(x = xvar, y = yvar)) +
+  geom_point(aes(color = Geographical_location, shape = Pair), size = 3) +
+  scale_shape_manual(values = shape.values) +
+  scale_color_manual(values = c(
+    "Nashik"     = "#2CA02C",
+    "Ahmednagar" = "orange",
+    "Pune"       = "#1F77B4"
+  )) +
+  labs(shape = "Twin Pair", color = "Geographical location") +
+  theme_minimal()
+
+##############################################################################################
 
 # Create ggplot object for Diet
 p1 <- plotReducedDim(tse, "PCoA_BC", colour_by = "Diet", point_size= 2.5)
@@ -93,15 +173,315 @@ rel_eig <- e/sum(e[e>0])
 p1 <- p1 + labs(x = paste("PCoA 1 (", round(100 * rel_eig[[1]],1), "%", ")", sep = ""),
               y = paste("PCoA 2 (", round(100 * rel_eig[[2]],1), "%", ")", sep = ""), title= "b. Diet") + 
   theme(legend.text=element_text(size=5)) + theme(axis.text.x = element_text(size=8), axis.text.y = element_text(size = 8)) + theme(axis.title = element_text(size = 10), plot.title = element_text(size = 15)) + theme(legend.box.spacing = unit(5, "pt"), legend.margin=margin(10,10,10,10)) + theme(legend.position ="bottom", legend.text = element_text(size=10))
-  #theme(legend.text=element_text(size=5)) + theme(axis.text.x = element_text(size=8), axis.text.y = element_text(size = 12)) + theme(axis.title = element_text(size = 12), plot.title = element_text(size = 15)) + theme(legend.position ="bottom", legend.text = element_text(size=10)) 
 
+#########
+library(ggplot2)
+
+# Extract coords + metadata
+coords <- as.data.frame(reducedDim(tse, "PCoA_BC"))
+coords$Diet <- colData(tse)$Diet
+
+# Detect first two dimensions
+xvar <- colnames(coords)[1]
+yvar <- colnames(coords)[2]
+
+# Explained variance
+e <- attr(reducedDim(tse, "PCoA_BC"), "eig")
+rel_eig <- e/sum(e[e>0])
+
+# Plot p1 with ellipses for Diet
+p1 <- ggplot(coords, aes_string(x = xvar, y = yvar, color = "Diet")) +
+  geom_point(size = 2.5) + 
+
+  # Ellipses for diet groups
+  stat_ellipse(aes_string(fill = "Diet"),
+               geom = "polygon", alpha = 0.15, show.legend = FALSE) +
+  # Axis labels
+  labs(x = paste("PCoA1 (", round(100 * rel_eig[1], 1), "%)", sep = ""),
+       y = paste("PCoA2 (", round(100 * rel_eig[2], 1), "%)", sep = ""),
+       title = "b. Diet") +
+
+  # Same clean theme you used for the geographical plot
+  theme_minimal() +
+  theme( panel.grid.major = element_blank(),panel.grid.minor = element_blank(),
+    # Keep axis lines
+    axis.line = element_line(color = "black"),axis.text = element_text(size = 13),axis.title = element_text(size = 13),plot.title = element_text(size = 16),legend.position = "bottom", legend.text = element_text(size = 10)
+  )
+
+print(p1)
+####################################################################
 # Create ggplot object for Gender
 p2 <- plotReducedDim(tse, "PCoA_BC", colour_by = "Gender", point_size= 2.5)
 e <- attr(reducedDim(tse, "PCoA_BC"), "eig");
 rel_eig <- e/sum(e[e>0])          
 p2 <- p2 + labs(x = paste("PCoA 1 (", round(100 * rel_eig[[1]],1), "%", ")", sep = ""),
               y = paste("PCoA 2 (", round(100 * rel_eig[[2]],1), "%", ")", sep = ""), title= "c. Gender") + theme(legend.text=element_text(size=5)) + theme(axis.text.x = element_text(size=8), axis.text.y = element_text(size = 8)) + theme(axis.title = element_text(size = 10), plot.title = element_text(size = 15)) + theme(legend.box.spacing = unit(5, "pt"), legend.margin=margin(10,10,10,10)) + theme(legend.position ="bottom", legend.text = element_text(size=10))
+##############
+library(ggplot2)
 
+twins_tse <- readRDS("data/twins_tse.rds")
+tse <- transformSamples(tse, method = "relabundance")
+tse <- runMDS(tse, FUN = vegan::vegdist, method = "bray", 
+              name = "PCoA_BC", exprs_values = "relabundance")
+
+# Extract coords + metadata
+coords <- as.data.frame(reducedDim(tse, "PCoA_BC"))
+coords$Gender <- colData(tse)$Gender  # <--- make sure Gender column exists
+
+# Automatically detect first two dimensions
+xvar <- colnames(coords)[1]
+yvar <- colnames(coords)[2]
+
+# Explained variance
+e <- attr(reducedDim(tse, "PCoA_BC"), "eig")
+rel_eig <- e / sum(e[e > 0])
+
+# Plot
+p2 <- ggplot(coords, aes_string(x = xvar, y = yvar, color = "Gender")) +
+  geom_point(size = 2.5) + 
+
+  stat_ellipse(aes_string(fill = "Gender"),
+               geom = "polygon", alpha = 0.15, show.legend = FALSE) +
+
+  # OPTIONAL: set your own colors for gender categories here
+  scale_color_manual(values = c(
+    "Male"   = "steelblue",
+    "Female" = "tomato"
+  )) +
+  scale_fill_manual(values = c(
+    "Male"   = "steelblue",
+    "Female" = "tomato"
+  )) +
+
+  # Axis labels
+  labs(x = paste("PCoA1 (", round(100 * rel_eig[1], 1), "%)", sep = ""),
+       y = paste("PCoA2 (", round(100 * rel_eig[2], 1), "%)", sep = ""),
+       title = "b. Gender") +
+
+  # Clean theme with axes lines
+  theme_minimal() +
+  theme(
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+
+    axis.line = element_line(color = "black"),
+
+    axis.text = element_text(size = 13),
+    axis.title = element_text(size = 13),
+    plot.title = element_text(size = 16),
+
+    legend.position = "bottom",
+    legend.text = element_text(size = 10)
+  )
+
+#print(p2)
+
+
+#gridExtra::grid.arrange(p, p1, p2, ncol = 3)
+##############################################################################################MIAVIZ
+library(ggplot2)
+library(scater)
+
+# Run PCoA
+twins_tse <- readRDS("data/twins_tse.rds")
+tse <- transformSamples(tse, method = "relabundance")
+tse <- runMDS(tse, FUN = vegan::vegdist, method = "bray", 
+              name = "PCoA_BC", exprs_values = "relabundance")
+
+# Extract coords + metadata
+coords <- as.data.frame(reducedDim(tse, "PCoA_BC"))
+coords$Geographical_location <- colData(tse)$Geographical_location
+coords$Pair <- factor(colData(tse)$Pair)  # Add twin pair as factor
+
+# Auto detect first two dimensions for plotting
+xvar <- colnames(coords)[1]
+yvar <- colnames(coords)[2]
+
+# Explained variance for axis labels
+e <- attr(reducedDim(tse, "PCoA_BC"), "eig")
+rel_eig <- e/sum(e[e > 0])
+
+# Choose 13 distinct shapes
+shape.values <- c(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12)
+
+# Final combined plot
+p <- ggplot(coords, aes_string(x = xvar, y = yvar)) +
+
+  # Add ellipses for each geographic group
+  stat_ellipse(
+    aes(color = Geographical_location, fill = Geographical_location, group = Geographical_location),
+    geom = "polygon", alpha = 0.15, show.legend = FALSE
+  ) +
+
+  # Add points with color = geography, shape = Twin pair
+  geom_point(aes(color = Geographical_location, shape = Pair), size = 2) +
+
+  # Manual scales
+  scale_color_manual(values = c(
+    "Nashik"     = "#2CA02C",
+    "Ahmednagar" = "orange",
+    "Pune"       = "#1F77B4"
+  )) +
+  scale_fill_manual(values = c(
+    "Nashik"     = "#2CA02C",
+    "Ahmednagar" = "orange",
+    "Pune"       = "#1F77B4"
+  )) +
+  scale_shape_manual(values = shape.values) +
+
+  # Labels & theme
+  labs(
+    x = paste0("PCoA1 (", round(100 * rel_eig[1], 1), "%)"),
+    y = paste0("PCoA2 (", round(100 * rel_eig[2], 1), "%)"),
+    title = "a. Geographical location",
+    shape = "Twin Pair",
+    color = "Geographical location",
+    fill = "Geographical location"
+  ) +
+  guides(
+    shape = guide_legend(nrow = 3, byrow = TRUE),
+    color = guide_legend(nrow = 3, byrow = TRUE),
+    fill  = guide_legend(nrow = 3, byrow = TRUE)
+  ) +
+  theme_minimal() +
+  theme(
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+    axis.line = element_line(color = "black"),
+    axis.text = element_text(size = 13),
+    axis.title = element_text(size = 13),
+    plot.title = element_text(size = 16),
+    legend.position = "bottom",
+    legend.text = element_text(size = 10)
+  )
+
+print(p)
+# diet
+twins_tse <- readRDS("data/twins_tse.rds")
+tse <- transformSamples(tse, method = "relabundance")
+tse <- runMDS(tse, FUN = vegan::vegdist, method = "bray", 
+              name = "PCoA_BC", exprs_values = "relabundance")
+
+# Extract coords + metadata
+coords <- as.data.frame(reducedDim(tse, "PCoA_BC"))
+coords$Diet <- colData(tse)$Diet
+coords$Pair <- factor(colData(tse)$Pair)  # Add twin pair as factor
+
+# Auto detect first two dimensions for plotting
+xvar <- colnames(coords)[1]
+yvar <- colnames(coords)[2]
+
+# Explained variance for axis labels
+e <- attr(reducedDim(tse, "PCoA_BC"), "eig")
+rel_eig <- e/sum(e[e > 0])
+
+# Choose 13 distinct shapes
+shape.values <- c(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12)
+
+# Final combined plot
+p1 <- ggplot(coords, aes_string(x = xvar, y = yvar)) +
+
+  # Add ellipses for each geographic group
+  stat_ellipse(
+    aes(color = Diet, fill = Diet, group = Diet),
+    geom = "polygon", alpha = 0.15, show.legend = FALSE
+  ) +
+
+  # Add points with color = geography, shape = Twin pair
+  geom_point(aes(color = Diet, shape = Pair), size = 2) +
+
+  scale_shape_manual(values = shape.values) +
+
+  # Labels & theme
+  labs(
+    x = paste0("PCoA1 (", round(100 * rel_eig[1], 1), "%)"),
+    y = paste0("PCoA2 (", round(100 * rel_eig[2], 1), "%)"),
+    title = "b. Diet",
+    shape = "Twin Pair",
+    color = "Diet",
+    fill = "Diet"
+  ) +
+  guides(
+    shape = guide_legend(nrow = 3, byrow = TRUE),
+    color = guide_legend(nrow = 3, byrow = TRUE),
+    fill  = guide_legend(nrow = 3, byrow = TRUE)
+  ) +
+  theme_minimal() +
+  theme(
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+    axis.line = element_line(color = "black"),
+    axis.text = element_text(size = 13),
+    axis.title = element_text(size = 13),
+    plot.title = element_text(size = 16),
+    legend.position = "bottom",
+    legend.text = element_text(size = 10)
+  )
+
+print(p1)
+# Gender
+twins_tse <- readRDS("data/twins_tse.rds")
+tse <- transformSamples(tse, method = "relabundance")
+tse <- runMDS(tse, FUN = vegan::vegdist, method = "bray", 
+              name = "PCoA_BC", exprs_values = "relabundance")
+
+# Extract coords + metadata
+coords <- as.data.frame(reducedDim(tse, "PCoA_BC"))
+coords$Gender <- colData(tse)$Gender
+coords$Pair <- factor(colData(tse)$Pair)  # Add twin pair as factor
+
+# Auto detect first two dimensions for plotting
+xvar <- colnames(coords)[1]
+yvar <- colnames(coords)[2]
+
+# Explained variance for axis labels
+e <- attr(reducedDim(tse, "PCoA_BC"), "eig")
+rel_eig <- e/sum(e[e > 0])
+
+# Choose 13 distinct shapes
+shape.values <- c(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12)
+
+# Final combined plot
+p2 <- ggplot(coords, aes_string(x = xvar, y = yvar)) +
+
+  # Add ellipses for each geographic group
+  stat_ellipse(
+    aes(color = Gender, fill = Gender, group = Gender),
+    geom = "polygon", alpha = 0.15, show.legend = FALSE
+  ) +
+
+  # Add points with color = geography, shape = Twin pair
+  geom_point(aes(color = Gender, shape = Pair), size = 2) +
+
+  scale_shape_manual(values = shape.values) +
+
+  # Labels & theme
+  labs(
+    x = paste0("PCoA1 (", round(100 * rel_eig[1], 1), "%)"),
+    y = paste0("PCoA2 (", round(100 * rel_eig[2], 1), "%)"),
+    title = "c. Gender",
+    shape = "Twin Pair",
+    color = "Gender",
+    fill = "Gender"
+  ) +
+  guides(
+    shape = guide_legend(nrow = 1, byrow = TRUE),
+    color = guide_legend(nrow = 1, byrow = TRUE),
+    fill  = guide_legend(nrow = 1, byrow = TRUE)
+  ) +
+  theme_minimal() +
+  theme(
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+    axis.line = element_line(color = "black"),
+    axis.text = element_text(size = 13),
+    axis.title = element_text(size = 13),
+    plot.title = element_text(size = 16),
+    legend.position = "bottom",
+    legend.text = element_text(size = 10)
+  )
+
+print(p2)
 gridExtra::grid.arrange(p, p1, p2, ncol = 3)
 ```
  
@@ -140,94 +520,217 @@ permanova <- adonis2(t(assay(tse,"pa")) ~ Geographical_location + Diet + Gender,
                      method = "jaccard",
                      permutations = 999)
 head(permanova)
+
+
+tseE <- tse[,!(colnames(tse) %in% c("T1B", "T2A", "T3B", "T4A", "T5B", "T6A", "T7A", "T8A", "T9A", "T10A", "T11B", "T12A", "T13B"))]
+set.seed(1234)
+set.seed(2123)
+permanova <- adonis2(t(assay(tseE,"pa")) ~ Geographical_location + Diet + Gender,
+                     by = "margin", 
+                     data = colData(tseE),
+                     method = "jaccard",
+                     permutations = 999)
+head(permanova)
+
+#tseF <- tse[,!(colnames(tse) %in% c("T1A", "T2B", "T3A", "T4B", "T5A", "T6B", "T7B", "T8B", "T9B", "T10B", "T11A", "T12B", "T13A"))]
+#set.seed(1234)
+#set.seed(3214)
+#set.seed(4321)
+#permanova <- adonis2(t(assay(tseF,"pa")) ~ Geographical_location + Diet + Gender,
+ #                    by = "margin", 
+  #                   data = colData(tseF),
+   #                  method = "jaccard",
+    #                 permutations = 999)
+#head(permanova)
 ```
 #PCoA
 
 ```{r PCoAJaccard, echo=FALSE, warning=FALSE, message=FALSE}
+#twins_tse <- readRDS("data/twins_tse.rds")
+#tse <- transformSamples(tse, method = "pa")
+#tse <- runMDS(tse, FUN = vegan::vegdist, method = "jaccard", name = "PCoA_J", exprs_values = "pa")
+
+# Create ggplot object for location 
+#p3 <- plotReducedDim(tse, "PCoA_J", colour_by = "Geographical_location", point_size= 2.5)
+# Add explained variance for each axis
+#e <- attr(reducedDim(tse, "PCoA_J"), "eig");
+#rel_eig <- e/sum(e[e>0])          
+#p3 <- p3 + labs(x = paste("PCoA 1 (", round(100 * rel_eig[[1]],1), "%", ")", sep = ""),
+#              y = paste("PCoA 2 (", round(100 * rel_eig[[2]],1), "%", ")", sep = ""), title= "a. Geographical location") + 
+#   theme(legend.text=element_text(size=5)) + theme(axis.text.x = element_text(size=8), axis.text.y = element_text(size = 8)) + theme(axis.title = element_text(size = 10), plot.title = element_text(size = 15)) + theme(legend.box.spacing = unit(5, "pt"), legend.margin=margin(10,10,10,10)) + theme(legend.position ="bottom", legend.text = element_text(size=10))
+
+
+# Create ggplot object for Diet
+#p4 <- plotReducedDim(tse, "PCoA_J", colour_by = "Diet", point_size= 2.5)
+#e <- attr(reducedDim(tse, "PCoA_J"), "eig");
+#rel_eig <- e/sum(e[e>0])          
+#p4<- p4 + labs(x = paste("PCoA 1 (", round(100 * rel_eig[[1]],1), "%", ")", sep = ""),
+ #             y = paste("PCoA 2 (", round(100 * rel_eig[[2]],1), "%", ")", sep = ""), title= "b. Diet") + theme(legend.text=element_text(size=5)) + theme(axis.text.x = element_text(size=8), axis.text.y = element_text(size = 8)) + theme(axis.title = element_text(size = 10), plot.title = element_text(size = 15)) + theme(legend.box.spacing = unit(5, "pt"), legend.margin=margin(10,10,10,10)) + theme(legend.position ="bottom", legend.text = element_text(size=10))
+
+# Create ggplot object for Gender
+#p5 <- plotReducedDim(tse, "PCoA_J", colour_by = "Gender", point_size= 2.5)
+#e <- attr(reducedDim(tse, "PCoA_J"), "eig");
+#rel_eig <- e/sum(e[e>0])          
+#p5 <- p5 + labs(x = paste("PCoA 1 (", round(100 * rel_eig[[1]],1), "%", ")", sep = ""),
+#              y = paste("PCoA 2 (", round(100 * rel_eig[[2]],1), "%", ")", sep = ""), title= "c. Gender") + theme(legend.text=element_text(size=5)) + theme(axis.text.x = element_text(size=8), axis.text.y = element_text(size = 8)) + theme(axis.title = element_text(size = 10), plot.title = element_text(size = 15)) + theme(legend.box.spacing = unit(5, "pt"), legend.margin=margin(10,10,10,10)) + theme(legend.position ="bottom", legend.text = element_text(size=10))
+#gridExtra::grid.arrange(p3, p4, p5, ncol = 3)
+#gridExtra::grid.arrange(p, p1, p2, p3, p4, p5, ncol = 3)
+###########################
+# Run PCoA
 twins_tse <- readRDS("data/twins_tse.rds")
 tse <- transformSamples(tse, method = "pa")
 tse <- runMDS(tse, FUN = vegan::vegdist, method = "jaccard", name = "PCoA_J", exprs_values = "pa")
 
-# Create ggplot object for location 
-p3 <- plotReducedDim(tse, "PCoA_J", colour_by = "Geographical_location", point_size= 2.5)
-# Add explained variance for each axis
-e <- attr(reducedDim(tse, "PCoA_J"), "eig");
-rel_eig <- e/sum(e[e>0])          
-p3 <- p3 + labs(x = paste("PCoA 1 (", round(100 * rel_eig[[1]],1), "%", ")", sep = ""),
-              y = paste("PCoA 2 (", round(100 * rel_eig[[2]],1), "%", ")", sep = ""), title= "a. Geographical location") + 
-   theme(legend.text=element_text(size=5)) + theme(axis.text.x = element_text(size=8), axis.text.y = element_text(size = 8)) + theme(axis.title = element_text(size = 10), plot.title = element_text(size = 15)) + theme(legend.box.spacing = unit(5, "pt"), legend.margin=margin(10,10,10,10)) + theme(legend.position ="bottom", legend.text = element_text(size=10))
+# Extract coords + metadata
+coords <- as.data.frame(reducedDim(tse, "PCoA_J"))
+coords$Geographical_location <- colData(tse)$Geographical_location
+coords$Pair <- factor(colData(tse)$Pair)  # Add twin pair as factor
 
+# Auto detect first two dimensions for plotting
+xvar <- colnames(coords)[1]
+yvar <- colnames(coords)[2]
 
-# Create ggplot object for Diet
-p4 <- plotReducedDim(tse, "PCoA_J", colour_by = "Diet", point_size= 2.5)
-e <- attr(reducedDim(tse, "PCoA_J"), "eig");
-rel_eig <- e/sum(e[e>0])          
-p4<- p4 + labs(x = paste("PCoA 1 (", round(100 * rel_eig[[1]],1), "%", ")", sep = ""),
-              y = paste("PCoA 2 (", round(100 * rel_eig[[2]],1), "%", ")", sep = ""), title= "b. Diet") + theme(legend.text=element_text(size=5)) + theme(axis.text.x = element_text(size=8), axis.text.y = element_text(size = 8)) + theme(axis.title = element_text(size = 10), plot.title = element_text(size = 15)) + theme(legend.box.spacing = unit(5, "pt"), legend.margin=margin(10,10,10,10)) + theme(legend.position ="bottom", legend.text = element_text(size=10))
+# Explained variance for axis labels
+e <- attr(reducedDim(tse, "PCoA_J"), "eig")
+rel_eig <- e/sum(e[e > 0])
 
-# Create ggplot object for Gender
-p5 <- plotReducedDim(tse, "PCoA_J", colour_by = "Gender", point_size= 2.5)
-e <- attr(reducedDim(tse, "PCoA_J"), "eig");
-rel_eig <- e/sum(e[e>0])          
-p5 <- p5 + labs(x = paste("PCoA 1 (", round(100 * rel_eig[[1]],1), "%", ")", sep = ""),
-              y = paste("PCoA 2 (", round(100 * rel_eig[[2]],1), "%", ")", sep = ""), title= "c. Gender") + theme(legend.text=element_text(size=5)) + theme(axis.text.x = element_text(size=8), axis.text.y = element_text(size = 8)) + theme(axis.title = element_text(size = 10), plot.title = element_text(size = 15)) + theme(legend.box.spacing = unit(5, "pt"), legend.margin=margin(10,10,10,10)) + theme(legend.position ="bottom", legend.text = element_text(size=10))
-gridExtra::grid.arrange(p3, p4, p5, ncol = 3)
-gridExtra::grid.arrange(p, p1, p2, p3, p4, p5, ncol = 3)
-```
+# Choose 13 distinct shapes
+shape.values <- c(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12)
 
+# Final combined plot
+p <- ggplot(coords, aes_string(x = xvar, y = yvar)) +
 
-# Aitchison
+  # Add ellipses for each geographic group
+  stat_ellipse(
+    aes(color = Geographical_location, fill = Geographical_location, group = Geographical_location),
+    geom = "polygon", alpha = 0.15, show.legend = FALSE
+  ) +
 
-```{r permanovaAitchison, echo=FALSE, warning=FALSE, message=FALSE}
-## PERMANOVA analysis
-tse <- readRDS("data/twins_tse.rds")
+  # Add points with color = geography, shape = Twin pair
+  geom_point(aes(color = Geographical_location, shape = Pair), size = 2) +
 
-# Agglomerate data to genus level
-tse <- agglomerateByRank(tse, rank = "Genus")
+  # Manual scales
+  scale_color_manual(values = c(
+    "Nashik"     = "#2CA02C",
+    "Ahmednagar" = "orange",
+    "Pune"       = "#1F77B4"
+  )) +
+  scale_fill_manual(values = c(
+    "Nashik"     = "#2CA02C",
+    "Ahmednagar" = "orange",
+    "Pune"       = "#1F77B4"
+  )) +
+  scale_shape_manual(values = shape.values) +
 
-# Transform data to clr
-tse <- transformAssay(tse, assay.type = "counts", method = "clr", pseudocount = 1)
+  # Labels & theme
+  labs(
+    x = paste0("PCoA1 (", round(100 * rel_eig[1], 1), "%)"),
+    y = paste0("PCoA2 (", round(100 * rel_eig[2], 1), "%)"),
+    title = "a. Geographical location",
+    shape = "Twin Pair",
+    color = "Geographical location",
+    fill = "Geographical location"
+  ) +
+  guides(
+    shape = guide_legend(nrow = 3, byrow = TRUE),
+    color = guide_legend(nrow = 3, byrow = TRUE),
+    fill  = guide_legend(nrow = 3, byrow = TRUE)
+  ) +
+  theme_minimal() +
+  theme(
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+    axis.line = element_line(color = "black"),
+    axis.text = element_text(size = 13),
+    axis.title = element_text(size = 13),
+    plot.title = element_text(size = 16),
+    legend.position = "bottom",
+    legend.text = element_text(size = 10)
+  )
 
+print(p)
+##########diet
 
-# Set seed for reproducibility
-set.seed(1576)
+coords <- as.data.frame(reducedDim(tse, "PCoA_J"))
+coords$Diet <- colData(tse)$Diet
+coords$Pair <- factor(colData(tse)$Pair)  # Add twin pair as factor
 
-# We choose 999 random permutations
-permanova <- adonis2(t(assay(tse,"clr")) ~ Geographical_location + Diet + Gender,
-                     by = "margin", 
-                     data = colData(tse),
-                     method = "euclidean",
-                     permutations = 999)
-head(permanova)
+# Auto detect first two dimensions for plotting
+xvar <- colnames(coords)[1]
+yvar <- colnames(coords)[2]
 
-#PCoA
-twins_tse <- readRDS("data/twins_tse.rds")
-tse <- transformSamples(tse, method = "clr", pseudocount = 1)
-tse <- runMDS(tse, FUN = getDissimilarity, method = "euclidean",assay.type = "clr",name = "MDS_aitchison")
+# Explained variance for axis labels
+e <- attr(reducedDim(tse, "PCoA_J"), "eig")
+rel_eig <- e/sum(e[e > 0])
 
-# Create ggplot object for location 
-p <- plotReducedDim(tse, "MDS_aitchison", colour_by = "Geographical_location", point_size= 2.5)
-# Add explained variance for each axis
-e <- attr(reducedDim(tse, "MDS_aitchison"), "eig");
-rel_eig <- e/sum(e[e>0])          
-p <- p + labs(x = paste("PCoA 1 (", round(100 * rel_eig[[1]],1), "%", ")", sep = ""),
-              y = paste("PCoA 2 (", round(100 * rel_eig[[2]],1), "%", ")", sep = ""), title= "a. Geographical location") + 
-   theme(legend.text=element_text(size=9)) + theme(axis.text.x = element_text(size=8), axis.text.y = element_text(size = 8)) + theme(axis.title = element_text(size = 10), plot.title = element_text(size = 15))  + theme(legend.position ="bottom")
-#print(p)
+# Choose 13 distinct shapes
+shape.values <- c(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12)
 
-# Create ggplot object for Diet
-p1 <- plotReducedDim(tse, "MDS_aitchison", colour_by = "Diet", point_size= 2.5)
-e <- attr(reducedDim(tse, "MDS_aitchison"), "eig");
-rel_eig <- e/sum(e[e>0])          
-p1 <- p1 + labs(x = paste("PCoA 1 (", round(100 * rel_eig[[1]],1), "%", ")", sep = ""),
-              y = paste("PCoA 2 (", round(100 * rel_eig[[2]],1), "%", ")", sep = ""), title= "b. Diet") + theme( legend.text=element_text(size=5)) + theme(axis.text.x = element_text(size=8), axis.text.y = element_text(size = 12)) + theme(axis.title = element_text(size = 12), plot.title = element_text(size = 15)) + theme(legend.position ="bottom", legend.text = element_text(size=10)) #+ theme(legend.box.spacing = unit(5, "pt"), legend.margin=margin(10,10,10,10))  #+labs(tag = "A")
+# Final combined plot
+p1 <- ggplot(coords, aes_string(x = xvar, y = yvar)) +
+  stat_ellipse(
+    aes(color = Diet, fill = Diet, group = Diet),
+    geom = "polygon", alpha = 0.15, show.legend = FALSE
+  ) + geom_point(aes(color = Diet, shape = Pair), size = 2) +
+  scale_shape_manual(values = shape.values) +
+  labs(x = paste0("PCoA1 (", round(100 * rel_eig[1], 1), "%)"),
+    y = paste0("PCoA2 (", round(100 * rel_eig[2], 1), "%)"),
+    title = "b. Diet",
+    shape = "Twin Pair",
+    color = "Diet",
+    fill = "Diet") +guides(shape = guide_legend(nrow = 3, byrow = TRUE),
+    color = guide_legend(nrow = 3, byrow = TRUE),
+    fill  = guide_legend(nrow = 3, byrow = TRUE)) +
+  theme_minimal() +theme(panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+    axis.line = element_line(color = "black"),
+    axis.text = element_text(size = 13),
+    axis.title = element_text(size = 13),
+    plot.title = element_text(size = 16),
+    legend.position = "none",
+    legend.text = element_text(size = 10))
 
-# Create ggplot object for Gender
-p2 <- plotReducedDim(tse, "MDS_aitchison", colour_by = "Gender", point_size= 2.5)
-e <- attr(reducedDim(tse, "MDS_aitchison"), "eig");
-rel_eig <- e/sum(e[e>0])          
-p2 <- p2 + labs(x = paste("PCoA 1 (", round(100 * rel_eig[[1]],1), "%", ")", sep = ""),
-              y = paste("PCoA 2 (", round(100 * rel_eig[[2]],1), "%", ")", sep = ""), title= "c. Gender") + theme(legend.text=element_text(size=5)) + theme(axis.text.x = element_text(size=8), axis.text.y = element_text(size = 8)) + theme(axis.title = element_text(size = 10), plot.title = element_text(size = 15)) + theme(legend.box.spacing = unit(5, "pt"), legend.margin=margin(10,10,10,10)) + theme(legend.position ="bottom", legend.text = element_text(size=10))
+print(p1)
+################## gender
+coords <- as.data.frame(reducedDim(tse, "PCoA_J"))
+coords$Gender <- colData(tse)$Gender
+coords$Pair <- factor(colData(tse)$Pair)  # Add twin pair as factor
 
+# Auto detect first two dimensions for plotting
+xvar <- colnames(coords)[1]
+yvar <- colnames(coords)[2]
+
+# Explained variance for axis labels
+e <- attr(reducedDim(tse, "PCoA_J"), "eig")
+rel_eig <- e/sum(e[e > 0])
+
+# Choose 13 distinct shapes
+shape.values <- c(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12)
+
+# Final combined plot
+p2 <- ggplot(coords, aes_string(x = xvar, y = yvar)) +
+  stat_ellipse(
+    aes(color = Gender, fill = Gender, group = Gender),
+    geom = "polygon", alpha = 0.15, show.legend = FALSE
+  ) + geom_point(aes(color = Gender, shape = Pair), size = 2) +
+  scale_shape_manual(values = shape.values) +
+  labs(x = paste0("PCoA1 (", round(100 * rel_eig[1], 1), "%)"),
+    y = paste0("PCoA2 (", round(100 * rel_eig[2], 1), "%)"),
+    title = "c. Gender",
+    shape = "Twin Pair",
+    color = "Gender",
+    fill = "Gender") +guides(shape = guide_legend(nrow = 2, byrow = TRUE),
+    color = guide_legend(nrow = 2, byrow = TRUE),
+    fill  = guide_legend(nrow = 2, byrow = TRUE)) +
+  theme_minimal() +theme(panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+    axis.line = element_line(color = "black"),
+    axis.text = element_text(size = 13),
+    axis.title = element_text(size = 13),
+    plot.title = element_text(size = 16),
+    legend.position = "none",
+    legend.text = element_text(size = 10))
+
+print(p2)
 gridExtra::grid.arrange(p, p1, p2, ncol = 3)
 ```

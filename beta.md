@@ -13,7 +13,22 @@
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
-![](beta_files/figure-markdown_strict/b-1.png)
+    ## Permutation test for adonis under reduced model
+    ## Marginal effects of terms
+    ## Permutation: free
+    ## Number of permutations: 999
+    ## 
+    ## adonis2(formula = t(assay(tseE, "relabundance")) ~ Geographical_location + Diet + Gender, data = colData(tseE), permutations = 999, method = "bray", by = "margin")
+    ##                       Df SumOfSqs      R2      F Pr(>F)  
+    ## Geographical_location  2  0.73844 0.30291 2.1210  0.063 .
+    ## Diet                   1  0.11232 0.04608 0.6453  0.701  
+    ## Gender                 1  0.21248 0.08716 1.2206  0.294  
+    ## Residual               8  1.39263 0.57126                
+    ## Total                 12  2.43783 1.00000                
+    ## ---
+    ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+![](beta_files/figure-markdown_strict/b-1.png)![](beta_files/figure-markdown_strict/b-2.png)![](beta_files/figure-markdown_strict/b-3.png)![](beta_files/figure-markdown_strict/b-4.png)![](beta_files/figure-markdown_strict/b-5.png)![](beta_files/figure-markdown_strict/b-6.png)
 
 # Jaccard
 
@@ -32,25 +47,21 @@
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
-\#PCoA
-
-![](beta_files/figure-markdown_strict/PCoAJaccard-1.png)
-
-# Aitchison
-
     ## Permutation test for adonis under reduced model
     ## Marginal effects of terms
     ## Permutation: free
     ## Number of permutations: 999
     ## 
-    ## adonis2(formula = t(assay(tse, "clr")) ~ Geographical_location + Diet + Gender, data = colData(tse), permutations = 999, method = "euclidean", by = "margin")
-    ##                       Df SumOfSqs      R2      F Pr(>F)    
-    ## Geographical_location  2   1473.3 0.16639 2.3723  0.001 ***
-    ## Diet                   1    395.9 0.04471 1.2749  0.145    
-    ## Gender                 1    556.7 0.06287 1.7926  0.015 *  
-    ## Residual              21   6521.1 0.73647                  
-    ## Total                 25   8854.6 1.00000                  
+    ## adonis2(formula = t(assay(tseE, "pa")) ~ Geographical_location + Diet + Gender, data = colData(tseE), permutations = 999, method = "jaccard", by = "margin")
+    ##                       Df SumOfSqs      R2      F Pr(>F)   
+    ## Geographical_location  2   0.8113 0.23098 1.5146  0.008 **
+    ## Diet                   1   0.2410 0.06861 0.8999  0.554   
+    ## Gender                 1   0.3092 0.08803 1.1545  0.223   
+    ## Residual               8   2.1425 0.61000                 
+    ## Total                 12   3.5124 1.00000                 
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
-![](beta_files/figure-markdown_strict/permanovaAitchison-1.png)
+\#PCoA
+
+![](beta_files/figure-markdown_strict/PCoAJaccard-1.png)![](beta_files/figure-markdown_strict/PCoAJaccard-2.png)![](beta_files/figure-markdown_strict/PCoAJaccard-3.png)![](beta_files/figure-markdown_strict/PCoAJaccard-4.png)
