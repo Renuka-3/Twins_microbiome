@@ -11,228 +11,466 @@ output: md_document
 library(knitr)
 library(tidyverse)
 library(miaViz)
+library(viridis)
 
+# 1. Load & preprocess data 
 tse <- readRDS("data/twins_tse.rds")
 
-
-# Computing relative abundance
 tse <- transformAssay(tse, assay.type = "counts", method = "relabundance")
+tse <- agglomerateByRank(tse, rank = "Phylum")
+top_taxa <- getTop(tse,
+                   top = 3,
+                   assay.type = "relabundance",
+                   detection = 0.1,
+                   prevalence = 0.2)
 
-# Getting top taxa on a Phylum level
-tse <- agglomerateByRank(tse, rank ="Phylum")
-top_taxa <- getTop(tse, top = 3, assay.type = "relabundance", detection= 0.1, prevalence = 0.2)
-
-# Renaming the "Phylum" rank to keep only top taxa and the rest to "Other"
-phylum_renamed <- lapply(rowData(tse)$Phylum, function(x){
-    if (x %in% top_taxa) {x} else {"Other"}
-    })
+phylum_renamed <- lapply(rowData(tse)$Phylum, function(x) {
+  if (x %in% top_taxa) x else "Other"
+})
 rowData(tse)$Phylum_sub <- as.character(phylum_renamed)
-# Agglomerate the data based on specified taxa
 tse_sub <- agglomerateByVariable(tse, by = "rows", f = "Phylum_sub")
 
-# Visualizing the composition barplot
-p<-plotAbundance(
-    tse_sub, assay.type = "relabundance",
-    order_sample_by = "Samples", add_x_text = TRUE)+ labs(x = "Samples", y = "Relative abundance (%)", title = "A.Core phyla") + theme(title =element_text(size=15, face='bold'), axis.title = element_text(size = 12), axis.text = element_text(size = 13)) 
-p <- p + guides(fill=guide_legend(title="Phylum")) + theme(legend.title = element_text(size = 16),legend.text = element_text(size = 14)) + theme(legend.key.size = unit(0.3, "cm"))
+# 2. Extract abundance data & reshape long
+relab <- assay(tse_sub, "relabundance")
+df <- as.data.frame(relab)
+df$Phylum <- rowData(tse_sub)$Phylum_sub
 
+df_long <- df %>%
+  pivot_longer(
+    cols = -Phylum,
+    names_to = "Sample",
+    values_to = "Abundance"
+  )
 
-####genus
+# 3. Define the sample order (in correct pairing order)
+# Replace below vector with your actual sample names and correct order
+sample_order <- c("T12A","T12B",
+                  "T13A","T13B",
+                  "T1A","T1B",
+                  "T3A","T3B",
+                  "T10A","T10B",
+                  "T2A","T2B",
+                  "T4A","T4B",
+                  "T5A","T5B",
+                  "T6A","T6B",
+                  "T7A","T7B",
+                  "T8A","T8B",
+                  "T9A","T9B",
+                  "T11A","T11B")
+# (Adjust as needed to match your dataset)
+
+if (!all(sample_order %in% unique(df_long$Sample))) {
+  stop("Some sample_order names not found in df_long$Sample")
+}
+
+# 4. Compute numeric x‑positions with consistent gap after each pair
+# We'll define: each pair occupies two consecutive positions, then we add a fixed gap
+pair_gap <- 1  # gap width; adjust if you want larger horizontal spacing between pairs
+bar_spacing <- 1  # internal spacing increment for each bar — these are integer steps
+
+# Build x positions vector:
+x_positions <- unlist(
+  lapply(seq(1, length(sample_order), by = 2), function(i) {
+    # for each pair:
+    s1 <- sample_order[i]
+    if (i + 1 <= length(sample_order)) {
+      s2 <- sample_order[i + 1]
+      # assign x positions (bar1, bar2), then a gap (bar + gap)
+      c(NA, NA, NA)  # we'll replace with actual numeric values below
+    } else {
+      c(NA, NA, NA)
+    }
+  })
+)
+# Actually simpler: build manually
+x_vals <- numeric(length(sample_order))
+current_x <- 1
+for(i in seq(1, length(sample_order), by = 2)) {
+  x_vals[i] <- current_x
+  if (i + 1 <= length(sample_order)) {
+    x_vals[i+1] <- current_x + bar_spacing
+  }
+  # after the pair, increment current_x by bar_spacing * 2 + pair_gap
+  current_x <- current_x + bar_spacing * 2 + pair_gap
+}
+
+sample_x <- tibble(
+  Sample = sample_order,
+  x = x_vals
+)
+
+# 5. Merge with long data — using explicit dplyr::left_join to avoid conflicts
+df_plot <- df_long %>%
+  filter(Sample %in% sample_order) %>%
+  dplyr::left_join(sample_x, by = "Sample")
+
+# 6. Plot with ggplot2
+library(ggplot2)
+
+R <- ggplot(df_plot, aes(x = x, y = Abundance, fill = Phylum)) +
+  geom_col(width = 0.9) +
+  scale_fill_manual(values = c(
+    "Proteobacteria" = "#e7298a",
+    "Firmicutes"     = "#1b9e77",
+    "Bacteroidetes"  = "#7570b3",
+    "Actinobacteria" = "#66a61e",
+    "Other"          = "#fee08b"
+  ), name = "Phylum") +
+  scale_x_continuous(
+    breaks = sample_x$x,
+    labels = sample_x$Sample,
+    expand = expansion(add = c(0.5, 0.5))
+  ) +
+  scale_y_continuous(labels = scales::percent) +
+  labs(x = "Samples", y = "Relative abundance (%)", title = "") +
+  theme_classic() +
+  theme(
+    plot.title     = element_text(size = 15, face = 'bold'),
+    axis.title     = element_text(size = 15),
+    axis.text      = element_text(size = 15),
+    legend.title   = element_text(size = 15),
+    legend.text    = element_text(size = 15),
+    legend.key.size= unit(0.3, "cm"),
+    axis.text.x    = element_text(angle = 90, vjust = 0.5)
+  )
+
+R <- ggplot(df_plot, aes(x = x, y = Abundance, fill = Phylum)) +
+  geom_col(width = 0.9) +
+  scale_fill_viridis_d(option = "viridis", begin = 0, end = 0.7) +
+  scale_y_continuous(labels = scales::percent) +
+  scale_x_continuous(
+    breaks = sample_x$x,
+    labels = sample_x$Sample,
+    expand = expansion(add = c(0.5, 0.5))
+  ) +
+  labs(x = "Samples", y = "Relative abundance (%)") +
+  theme_classic() +
+  theme(
+    plot.title     = element_text(size = 15, face = 'bold'),
+    axis.title     = element_text(size = 15),
+    axis.text      = element_text(size = 14),
+    legend.title   = element_text(size = 15),
+    legend.text    = element_text(size = 15),
+    legend.key.size= unit(0.3, "cm"),
+    axis.text.x    = element_text(angle = 90, vjust = 0.5)
+  )
+
+print(R)
+print(R)
+ "#000004FF" "#180F3EFF" "#451077FF"
+[4] "#721F81FF" "#9F2F7FFF" "#CD4071FF"
+[7] "#F1605DFF" "#FD9567FF" "#FEC98DFF"
+[10] "#FCFDBFFF"
+#########################################################################################################
+
+# Genus
+library(tidyverse)
+library(miaViz)
+
+# 1. Load & prepare data
 tse <- readRDS("data/twins_tse.rds")
 
-# Computing relative abundance
 tse <- transformAssay(tse, assay.type = "counts", method = "relabundance")
+tse <- agglomerateByRank(tse, rank = "Genus")
 
-# Getting top taxa on a Genus level
-tse <- agglomerateByRank(tse, rank ="Genus")
-top_taxa <- getTop(tse, top = 5, assay.type = "relabundance", detection= 0.1, prevalence = 0.2)
+top_taxa <- getTop(
+  tse,
+  top = 5,
+  assay.type = "relabundance",
+  detection = 0.1,
+  prevalence = 0.2
+)
 
-# Renaming the "Genus" rank to keep only top taxa and the rest to "Other"
-genus_renamed <- lapply(rowData(tse)$Genus, function(x){
-    if (x %in% top_taxa) {x} else {"Other"}
-    })
+genus_renamed <- lapply(rowData(tse)$Genus, function(x) {
+  if (x %in% top_taxa) x else "Other"
+})
 rowData(tse)$Genus_sub <- as.character(genus_renamed)
-# Agglomerate the data based on specified taxa
 tse_sub <- agglomerateByVariable(tse, by = "rows", f = "Genus_sub")
 
+# 2. Extract relative abundance, reshape to long format
+relab <- assay(tse_sub, "relabundance")
+df <- as.data.frame(relab)
+df$Genus <- rowData(tse_sub)$Genus_sub
 
-p1<-plotAbundance(
-    tse_sub, assay.type = "relabundance",
-    order_sample_by = "Samples", add_x_text = TRUE)+ labs(x = "Samples", y = "Relative abundance (%)", title = "B. Core genera") + theme(title =element_text(size=16, face='bold'), axis.title = element_text(size = 12), axis.text = element_text(size = 14)) 
-p1 <- p1 + guides(fill=guide_legend(title="Genus")) + theme(legend.title = element_text(size = 16),legend.text = element_text(size = 14)) + theme(legend.key.size = unit(0.3, "cm"))
-library(gridExtra)
-grid.arrange( p ,p1, nrow = 2 )
-```
+df_long <- df %>%
+  pivot_longer(
+    cols = -Genus,
+    names_to = "Sample",
+    values_to = "Abundance"
+  )
 
-## Most prevelent genera mean, median calculations
+# 3. Define the sample‑order (paired) vector — adapt to your sample names
+sample_order <- c(
+  "T12A","T12B",
+  "T13A","T13B",
+  "T1A","T1B",
+  "T3A","T3B",
+  "T10A","T10B",
+  "T2A","T2B",
+  "T4A","T4B",
+  "T5A","T5B",
+  "T6A","T6B",
+  "T7A","T7B",
+  "T8A","T8B",
+  "T9A","T9B",
+  "T11A","T11B"
+  )  
+# adjust this vector to exactly match your sample names
 
-```{r core_mm, echo=FALSE, message=FALSE}
-library(knitr)
+if (!all(sample_order %in% unique(df_long$Sample))) {
+  stop("Some sample_order names are not present in df_long$Sample — check spelling/order")
+}
+
+# 4. Create numeric x‑positions with gap after every pair
+bar_spacing <- 1
+pair_gap   <- 1.5  # tweak this value to control gap width between pairs
+
+x_vals <- numeric(length(sample_order))
+current_x <- 1
+for (i in seq(1, length(sample_order), by = 2)) {
+  x_vals[i] <- current_x
+  if (i + 1 <= length(sample_order)) {
+    x_vals[i + 1] <- current_x + bar_spacing
+  }
+  current_x <- current_x + 2*bar_spacing + pair_gap
+}
+
+sample_x <- tibble(Sample = sample_order, x = x_vals)
+
+# 5. Merge with long data (use dplyr to avoid conflicts from miaViz)
+df_plot <- df_long %>%
+  filter(Sample %in% sample_order) %>%
+  dplyr::left_join(sample_x, by = "Sample")
+
+# 6. Plot with ggplot2 using default colour scale (no manual fill) + defined spacing
+library(ggplot2)
+cbf_colors <- c(
+  "#999999",   # Gray
+  "#E69F00",  # Orange
+  "#009E73",  # Bluish Green
+  "#0072B2",  # Blue
+  "#D55E00",  # Vermilion
+  "#CC79A7"  # Reddish Purple
+)
+Q<- ggplot(df_plot, aes(x = x, y = Abundance, fill = Genus)) +
+  geom_col(width = bar_spacing * 0.9) +  # controls bar thickness
+   scale_fill_manual(values = cbf_colors) +
+  scale_y_continuous(labels = scales::percent) +
+  scale_x_continuous(
+    breaks = sample_x$x,
+    labels = sample_x$Sample,
+    expand = expansion(add = c(0.5, 0.5))
+  ) +
+  labs(
+    x = "Samples",
+    y = "Relative abundance (%)",
+    title = ""
+  ) +
+  theme_classic() +
+  theme(
+    plot.title      = element_text(size = 16, face = "bold"),
+    axis.title      = element_text(size = 15),
+    axis.text       = element_text(size = 14),
+    legend.title    = element_text(size = 15),
+    legend.text     = element_text(size = 15),
+    legend.key.size = unit(0.3, "cm"),
+    axis.text.x     = element_text(angle = 90, vjust = 0.5)
+  )
+print(Q)
+#################################################################################################################
+
+#LOcATION WISE GENUS level
+
 library(tidyverse)
 library(miaViz)
+library(mia)    
+library(ggplot2)
 
+# 1. Load and preprocess data (same as before)
 tse <- readRDS("data/twins_tse.rds")
+tse <- transformAssay(tse,
+                      assay.type = "counts",
+                      method = "relabundance")
+tse <- agglomerateByRank(tse, rank = "Genus")  # or "Phylum", as needed
 
-# Agglomerate data
-altExps(tse) <- splitByRanks(tse)
+top_taxa <- getTop(tse, top = 5,
+                   assay.type = "relabundance",
+                   detection = 0.1,
+                   prevalence = 0.2)
 
-# Relative transform
-altExp(tse, "Genus") <- transformAssay(altExp(tse, "Genus"), method = "relabundance")
+tax_renamed <- lapply(rowData(tse)$Genus, function(x) {
+  if (x %in% top_taxa) x else "Other"
+})
+rowData(tse)$Taxon_sub <- as.character(tax_renamed)
 
-# Calculate mean
-rowData(altExp(tse, "Genus"))[["mean"]] <- rowData(altExp(tse, "Genus"))[["mean"]] <- rowMeans(assay(altExp(tse, "Genus"), "relabundance"))
-#rowData(altExp(tse, "Genus"))[["mean"]] <- round(100 *(rowMeans(assay(altExp(tse, "Genus"), "relabundance"),1))
+tse_sub <- agglomerateByVariable(
+  tse,
+  by = "rows",
+  f = "Taxon_sub"
+)
 
-# Calculate median
-rowData(altExp(tse, "Genus"))[["median"]] <- rowMedians(assay(altExp(tse, "Genus"), "relabundance"))
+# 2. Split by geographical location (sample metadata column in colData)
+se_list <- splitOn(tse_sub, group = colData(tse_sub)$Geographical_location)
 
-# Get table,, order features based on median value, take only top 4
-df <- rowData(altExp(tse, "Genus"))
-df <- df[ order(df[["median"]], decreasing = TRUE), ]
-df[1:4, ]
+# se_list is a SimpleList (or list‑like) of SummarizedExperiment objects — one for each location
 
-head(getPrevalence(tse, rank = "Genus", detection = 0.01/100, sort = TRUE,
-                   assay.type = "counts", as_relative = TRUE))
-
-
-#####plyla
-
-tse <- readRDS("data/twins_tse.rds")
-
-# Agglomerate data
-altExps(tse) <- splitByRanks(tse)
-
-# Relative transform
-altExp(tse, "Phylum") <- transformAssay(altExp(tse, "Phylum"), method = "relabundance")
-
-# Calculate mean
-rowData(altExp(tse, "Phylum"))[["mean"]] <- rowData(altExp(tse, "Phylum"))[["mean"]] <- rowMeans(assay(altExp(tse, "Phylum"), "relabundance"))
-#rowData(altExp(tse, "Genus"))[["mean"]] <- round(100 *(rowMeans(assay(altExp(tse, "Genus"), "relabundance"),1))
-
-# Calculate median
-rowData(altExp(tse, "Phylum"))[["median"]] <- rowMedians(assay(altExp(tse, "Phylum"), "relabundance"))
-
-# Get table,, order features based on median value, take only top 6
-df <- rowData(altExp(tse, "Phylum"))
-df <- df[ order(df[["median"]], decreasing = TRUE), ]
-df[1:6, ]
-
-head(getPrevalence(tse, rank = "Phylum", detection = 0.01/100, sort = TRUE,
-                   assay.type = "counts", as_relative = TRUE))
+# 3. For each location, extract data & plot with your custom spacing
+for (loc in names(se_list)) {
+  sub_se <- se_list[[loc]]
+  
+  # Extract relabundance & reshape long
+  relab <- assay(sub_se, "relabundance")
+  df <- as.data.frame(relab)
+  df$Taxon <- rowData(sub_se)$Taxon_sub
+  
+  df_long <- df %>%
+    pivot_longer(cols = -Taxon, names_to = "Sample", values_to = "Abundance")
+  
+  # Define sample order (per location) and compute numeric x positions if you want gaps between pairs
+  sample_order <- unique(df_long$Sample)
+  
+  bar_spacing <- 1
+  pair_gap    <- 1.5
+  
+  x_vals <- numeric(length(sample_order))
+  current_x <- 1
+  for (i in seq_along(sample_order)) {
+    x_vals[i] <- current_x
+    if (i %% 2 == 0) {
+      current_x <- current_x + bar_spacing + pair_gap
+    } else {
+      current_x <- current_x + bar_spacing
+    }
+  }
+  sample_x <- tibble(Sample = sample_order, x = x_vals)
+  
+  df_plot <- df_long %>%
+    dplyr::left_join(sample_x, by = "Sample")
+  
+  # Plot
+  p <- ggplot(df_plot, aes(x = x, y = Abundance, fill = Taxon)) +
+        geom_col(width = bar_spacing * 0.9) +
+        scale_x_continuous(breaks = sample_x$x,
+                           labels = sample_x$Sample,
+                           expand = expansion(add = c(0.5, 0.5))) +
+        labs(title = paste("Location:", loc),
+             x = "Samples", y = "Relative abundance (%)") +
+        theme_classic() +
+        theme(axis.text.x = element_text(angle = 90, vjust = 0.5))
+  
+  print(p)
+}
 ```
 
 
-##Geographical location-wise genus abundance of twins
+## Location-wise calculation for phyla and genera
 
 ```{r geocore, echo=FALSE, message=FALSE, warning=FALSE, error=FALSE}
+# WORKEDDDDDDD Genus
 library(mia)
-library(miaViz)
 library(dplyr)
-library(ggplot2)
-library(knitr)
-library(tidyverse)
 
-
+# 0. Load data
 tse <- readRDS("data/twins_tse.rds")
 
-# 1. Subset to Pune
-tse_pune <- tse[, tse$Geographical_location == "Pune"]
+# 1. Agglomerate to Genus level
+tse_genus <- agglomerateByRank(tse, rank = "Genus", na.rm = TRUE)
 
 # 2. Transform to relative abundance
-tse_pune <- transformAssay(tse_pune, assay.type = "counts", method = "relabundance")
+tse_rel <- transformAssay(tse_genus,
+                          assay.type = "counts",
+                          method = "relabundance")
 
-# 3. Agglomerate at Genus level
-tse_pune_genus <- agglomerateByRank(tse_pune, rank = "Genus", onRankOnly = TRUE)
+# 4. Extract the relabundance assay matrix
+ra_mat <- assay(tse_rel, "relabundance")
 
-# 4. Identify top 6 genera by prevalence
-top_taxa <- getTopTaxa(tse_pune_genus,top = 6,detection = 0.1 / 100,prevalence = 1 / 100,method = "prevalence",assay_name = "relabundance")
+# 5. Check sums per sample — should be 1 (or very close)
+sums <- colSums(ra_mat, na.rm = TRUE)
+#print(summary(sums))
+#print(range(sums))
 
-# 5. Rename non-top taxa to "Other"
-rowData(tse_pune_genus)$Genus <- sapply(
-  rowData(tse_pune_genus)$Genus,
-  function(x) if (x %in% top_taxa) x else "Other"
-)
+# 6. If sums look fine, melt the data + metadata to a tibble
+df_long <- meltSE(tse_rel,
+                  assay.type = "relabundance",
+                  add.col = TRUE,
+                  row.name = "Genus",
+                  col.name = "SampleID")
 
-# 6. Collapse all same-named taxa (this step is crucial!)
-tse_pune_genus <- agglomerateByRank(tse_pune_genus, rank = "Genus")
+# 7. Inspect the structure: check what dtype the abundance column is
+#print(str(df_long$relabundance[1:10]))
+#print(head(df_long, 20))
 
-# 7. Plot (now "Other" should appear only once)
-library(ggplot2)
-a <- plotAbundance(
-  tse_pune_genus,
-  assay_name = "relabundance",
-  rank = "Genus",
-  add_x_text = TRUE
-) +
-  labs(x = "Genus", y = "", title = "Pune") +
-  scale_y_continuous(labels = scales::percent)
+# 8. Now subset to your target genera of interest
+target_genera <- c("Acinetobacter","Staphylococcus","Corynebacterium","Bacillus","Pseudomonas")
+df_sub <- df_long %>%
+  filter(Genus %in% target_genera)
 
-#print(a)
-### Nashik
-# 1. Subset to Nashik
-tse_na <- tse[, tse$Geographical_location == "Nashik"]
+# 9. Summarise per city & genus: prevalence, mean, median (as %)
+detection_frac <- 0.001  # 0.1%
 
-# 2. Transform to relative abundance
-tse_na <- transformAssay(tse_na, assay.type = "counts", method = "relabundance")
+summary_by_city <- df_sub %>%
+  group_by(Geographical_location, Genus) %>%
+  summarise(
+    prevalence_pct    = 100 * mean(relabundance >= detection_frac, na.rm = TRUE),
+    mean_relabund_pct = 100 * mean(relabundance, na.rm = TRUE),
+    .groups = "drop"
+  )
 
-# 3. Agglomerate at Genus level
-tse_na_genus <- agglomerateByRank(tse_na, rank = "Genus", onRankOnly = TRUE)
+print(summary_by_city)
+#####################################################################
+#phylum WORKEDDDDDDD 
+library(mia)
+library(dplyr)
 
-# 4. Identify top 6 genera by prevalence
-top_taxa <- getTopTaxa(tse_na_genus,top = 6,detection = 0.1 / 100,prevalence = 1 / 100,method = "prevalence",assay_name = "relabundance")
+# 0. Load data
+tse <- readRDS("data/twins_tse.rds")
 
-# 5. Rename non-top taxa to "Other"
-rowData(tse_na_genus)$Genus <- sapply(
-  rowData(tse_na_genus)$Genus,
-  function(x) if (x %in% top_taxa) x else "Other"
-)
-
-# 6. Collapse all same-named taxa (this step is crucial!)
-tse_na_genus <- agglomerateByRank(tse_na_genus, rank = "Genus")
-
-# 7. Plot (now "Other" should appear only once)
-library(ggplot2)
-b <- plotAbundance(
-  tse_na_genus,
-  assay_name = "relabundance",
-  rank = "Genus",
-  add_x_text = TRUE
-) +
-  labs(x = "", y = "", title = "Nashik") +
-  scale_y_continuous(labels = scales::percent)
-
-#print(b)
-##ahmednagar
-tse_ahm <- tse[, tse$Geographical_location == "Ahmednagar"]
+# 1. Agglomerate to Genus level
+tse_phy <- agglomerateByRank(tse, rank = "Phylum", na.rm = TRUE)
 
 # 2. Transform to relative abundance
-tse_ahm <- transformAssay(tse_ahm, assay.type = "counts", method = "relabundance")
+tse_rel <- transformAssay(tse_phy,
+                          assay.type = "counts",
+                          method = "relabundance")
 
-# 3. Agglomerate at Genus level
-tse_ahm_genus <- agglomerateByRank(tse_ahm, rank = "Genus", onRankOnly = TRUE)
+# 3. Check that relabundance assay exists
+#print("Assay names in tse_rel:")
+#print(assayNames(tse_rel))
 
-# 4. Identify top 6 genera by prevalence
-top_taxa <- getTopTaxa(tse_ahm_genus,top = 6,detection = 0.1 / 100,prevalence = 1 / 100,method = "prevalence",assay_name = "relabundance")
+# 4. Extract the relabundance assay matrix
+ra_mat <- assay(tse_rel, "relabundance")
 
-# 5. Rename non-top taxa to "Other"
-rowData(tse_ahm_genus)$Genus <- sapply(
-  rowData(tse_ahm_genus)$Genus,
-  function(x) if (x %in% top_taxa) x else "Other"
-)
+# 5. Check sums per sample — should be 1 (or very close)
+sums <- colSums(ra_mat, na.rm = TRUE)
+#print(summary(sums))
+#print(range(sums))
 
-# 6. Collapse all same-named taxa (this step is crucial!)
-tse_ahm_genus <- agglomerateByRank(tse_ahm_genus, rank = "Genus")
+# 6. If sums look fine, melt the data + metadata to a tibble
+df_long <- meltSE(tse_rel,
+                  assay.type = "relabundance",
+                  add.col = TRUE,
+                  row.name = "Phylum",
+                  col.name = "SampleID")
 
-# 7. Plot (now "Other" should appear only once)
-library(ggplot2)
-c <- plotAbundance(
-  tse_ahm_genus,
-  assay_name = "relabundance",
-  rank = "Genus",
-  add_x_text = TRUE
-) +
-  labs(x = "", y = "", title = "Ahmednagar") +
-  scale_y_continuous(labels = scales::percent)
+# 7. Inspect the structure: check what dtype the abundance column is
+#print(str(df_long$relabundance[1:10]))
+#print(head(df_long, 20))
 
-#print(c)
+# 8. Now subset to your target genera of interest
+target_phyla <- c("Firmicutes", "Actinobacteria", "Proteobacteria")
+df_sub <- df_long %>%
+  filter(Phylum %in% target_phyla)
+
+# 9. Summarise per city & genus: prevalence, mean, median (as %)
+detection_frac <- 0.001  # 0.1%
+
+summary_by_city <- df_sub %>%
+  group_by(Geographical_location, Phylum) %>%
+  summarise(
+    prevalence_pct    = 100 * mean(relabundance >= detection_frac, na.rm = TRUE),
+    mean_relabund_pct = 100 * mean(relabundance, na.rm = TRUE),
+    .groups = "drop"
+  )
+
+print(summary_by_city)
 ```

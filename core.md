@@ -1,31 +1,45 @@
 ## core- upated
 
-![](core_files/figure-markdown_strict/core-1.png)
+    ## Warning: package 'knitr' was built under R version 4.4.2
 
-## Most prevelent genera mean, median calculations
+    ## Warning: package 'ggplot2' was built under R version 4.4.3
 
-    ## DataFrame with 4 rows and 8 columns
-    ##                     Kingdom         Phylum         Class             Order             Family           Genus      mean     median
-    ##                 <character>    <character>   <character>       <character>        <character>     <character> <numeric>  <numeric>
-    ## Staphylococcus     Bacteria     Firmicutes       Bacilli        Bacillales  Staphylococcaceae  Staphylococcus 0.5250364 0.52924957
-    ## Bacillus           Bacteria     Firmicutes       Bacilli        Bacillales        Bacillaceae        Bacillus 0.1313850 0.01452424
-    ## Corynebacterium    Bacteria Actinobacteria Actinomycetia Corynebacteriales Corynebacteriaceae Corynebacterium 0.0241378 0.00971342
-    ## Anaerococcus       Bacteria     Firmicutes  Tissierellia    Tissierellales   Peptoniphilaceae    Anaerococcus 0.0216609 0.00463932
+    ## Warning: package 'lubridate' was built under R version 4.4.2
 
-    ##  Staphylococcus     Pseudomonas        Bacillus    Anaerococcus Corynebacterium   Acinetobacter 
-    ##       1.0000000       1.0000000       1.0000000       1.0000000       0.9615385       0.8461538
+    ## Warning: package 'matrixStats' was built under R version 4.4.2
 
-    ## DataFrame with 6 rows and 8 columns
-    ##                    Kingdom         Phylum       Class       Order      Family       Genus        mean      median
-    ##                <character>    <character> <character> <character> <character> <character>   <numeric>   <numeric>
-    ## Firmicutes        Bacteria     Firmicutes          NA          NA          NA          NA 7.18353e-01 7.99003e-01
-    ## Proteobacteria    Bacteria Proteobacteria          NA          NA          NA          NA 2.28033e-01 6.70659e-02
-    ## Actinobacteria    Bacteria Actinobacteria          NA          NA          NA          NA 5.14973e-02 3.03059e-02
-    ## Bacteroidetes     Bacteria  Bacteroidetes          NA          NA          NA          NA 1.89192e-03 1.74788e-04
-    ## Tenericutes       Bacteria    Tenericutes          NA          NA          NA          NA 3.55609e-05 2.83439e-05
-    ## NA                Bacteria             NA          NA          NA          NA          NA 3.57355e-05 2.81896e-05
+![](core_files/figure-markdown_strict/core-1.png)![](core_files/figure-markdown_strict/core-2.png)![](core_files/figure-markdown_strict/core-3.png)![](core_files/figure-markdown_strict/core-4.png)![](core_files/figure-markdown_strict/core-5.png)
 
-    ## Proteobacteria     Firmicutes Actinobacteria  Bacteroidetes    Tenericutes Fibrobacteres  
-    ##     1.00000000     1.00000000     1.00000000     0.61538462     0.07692308     0.07692308
+## Location-wise calculation for phyla and genera
 
-\##Geographical location-wise genus abundance of twins
+    ## # A tibble: 15 × 4
+    ##    Geographical_location Genus           prevalence_pct mean_relabund_pct
+    ##    <chr>                 <fct>                    <dbl>             <dbl>
+    ##  1 Ahmednagar            Acinetobacter             50              6.53  
+    ##  2 Ahmednagar            Bacillus                  83.3            6.51  
+    ##  3 Ahmednagar            Corynebacterium           66.7            0.632 
+    ##  4 Ahmednagar            Pseudomonas               83.3           35.0   
+    ##  5 Ahmednagar            Staphylococcus           100             24.4   
+    ##  6 Nashik                Acinetobacter             75             23.0   
+    ##  7 Nashik                Bacillus                 100              3.55  
+    ##  8 Nashik                Corynebacterium           75              0.529 
+    ##  9 Nashik                Pseudomonas                0              0.0407
+    ## 10 Nashik                Staphylococcus           100             48.0   
+    ## 11 Pune                  Acinetobacter             12.5            2.11  
+    ## 12 Pune                  Bacillus                  81.2           18.0   
+    ## 13 Pune                  Corynebacterium           93.8            3.55  
+    ## 14 Pune                  Pseudomonas               31.2            2.39  
+    ## 15 Pune                  Staphylococcus           100             64.2
+
+    ## # A tibble: 9 × 4
+    ##   Geographical_location Phylum         prevalence_pct mean_relabund_pct
+    ##   <chr>                 <fct>                   <dbl>             <dbl>
+    ## 1 Ahmednagar            Actinobacteria          100                5.26
+    ## 2 Ahmednagar            Firmicutes              100               38.4 
+    ## 3 Ahmednagar            Proteobacteria          100               56.2 
+    ## 4 Nashik                Actinobacteria          100                1.21
+    ## 5 Nashik                Firmicutes              100               61.1 
+    ## 6 Nashik                Proteobacteria          100               37.1 
+    ## 7 Pune                  Actinobacteria          100                6.09
+    ## 8 Pune                  Firmicutes              100               87.1 
+    ## 9 Pune                  Proteobacteria           93.8              6.69
