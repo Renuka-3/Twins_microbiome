@@ -107,32 +107,32 @@ df_plot <- df_long %>%
 # 6. Plot with ggplot2
 library(ggplot2)
 
-R <- ggplot(df_plot, aes(x = x, y = Abundance, fill = Phylum)) +
-  geom_col(width = 0.9) +
-  scale_fill_manual(values = c(
-    "Proteobacteria" = "#e7298a",
-    "Firmicutes"     = "#1b9e77",
-    "Bacteroidetes"  = "#7570b3",
-    "Actinobacteria" = "#66a61e",
-    "Other"          = "#fee08b"
-  ), name = "Phylum") +
-  scale_x_continuous(
-    breaks = sample_x$x,
-    labels = sample_x$Sample,
-    expand = expansion(add = c(0.5, 0.5))
-  ) +
-  scale_y_continuous(labels = scales::percent) +
-  labs(x = "Samples", y = "Relative abundance (%)", title = "") +
-  theme_classic() +
-  theme(
-    plot.title     = element_text(size = 15, face = 'bold'),
-    axis.title     = element_text(size = 15),
-    axis.text      = element_text(size = 15),
-    legend.title   = element_text(size = 15),
-    legend.text    = element_text(size = 15),
-    legend.key.size= unit(0.3, "cm"),
-    axis.text.x    = element_text(angle = 90, vjust = 0.5)
-  )
+#R <- ggplot(df_plot, aes(x = x, y = Abundance, fill = Phylum)) +
+#  geom_col(width = 0.9) +
+#  scale_fill_manual(values = c(
+#    "Proteobacteria" = "#e7298a",
+#    "Firmicutes"     = "#1b9e77",
+#    "Bacteroidetes"  = "#7570b3",
+#    "Actinobacteria" = "#66a61e",
+#    "Other"          = "#fee08b"
+#  ), name = "Phylum") +
+#  scale_x_continuous(
+ #   breaks = sample_x$x,
+  #  labels = sample_x$Sample,
+  #  expand = expansion(add = c(0.5, 0.5))
+  #) +
+#  scale_y_continuous(labels = scales::percent) +
+#  labs(x = "Samples", y = "Relative abundance (%)", title = "") +
+#  theme_classic() +
+#  theme(
+ #   plot.title     = element_text(size = 15, face = 'bold'),
+  #  axis.title     = element_text(size = 15),
+  #  axis.text      = element_text(size = 15),
+  #  legend.title   = element_text(size = 15),
+  #  legend.text    = element_text(size = 15),
+#    legend.key.size= unit(0.3, "cm"),
+#    axis.text.x    = element_text(angle = 90, vjust = 0.5)
+#  )
 
 R <- ggplot(df_plot, aes(x = x, y = Abundance, fill = Phylum)) +
   geom_col(width = 0.9) +
@@ -156,11 +156,7 @@ R <- ggplot(df_plot, aes(x = x, y = Abundance, fill = Phylum)) +
   )
 
 print(R)
-print(R)
- "#000004FF" "#180F3EFF" "#451077FF"
-[4] "#721F81FF" "#9F2F7FFF" "#CD4071FF"
-[7] "#F1605DFF" "#FD9567FF" "#FEC98DFF"
-[10] "#FCFDBFFF"
+
 #########################################################################################################
 
 # Genus

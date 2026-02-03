@@ -1,13 +1,5 @@
 ## core- upated
 
-    ## Warning: package 'knitr' was built under R version 4.4.2
-
-    ## Warning: package 'ggplot2' was built under R version 4.4.3
-
-    ## Warning: package 'lubridate' was built under R version 4.4.2
-
-    ## Warning: package 'matrixStats' was built under R version 4.4.2
-
 ![](core_files/figure-markdown_strict/core-1.png)![](core_files/figure-markdown_strict/core-2.png)![](core_files/figure-markdown_strict/core-3.png)![](core_files/figure-markdown_strict/core-4.png)![](core_files/figure-markdown_strict/core-5.png)
 
 ## Location-wise calculation for phyla and genera
