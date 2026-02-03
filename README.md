@@ -2,10 +2,10 @@
 ### This is the code repository to analyze the skin microbiome of monozygotic twins ###
 
 ## Pre-prossessd data files 
-The abundance table (OTU), taxonomy table and sample metadata files used to create TSE. 
+The abundance table, taxonomy table and sample metadata files used to create TSE. 
 
 ## Generate TSE object
-Create TSE object using metadata, otu table, and taxa table. 
+Create TSE object using metadata, abundance table, and taxa table. 
 
 The data uses TreeSummarizedExperiment data container. 
 
