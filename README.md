@@ -21,3 +21,4 @@ rmarkdown::render("TSE.Rmd")
 - **comparative analysis for twins, sibling and unrelated individuals** ([comparison_new.Rmd](comparison_new.Rmd)) | **Figure4** ([comparison_new.md](comparison_new.md)): A) twins non twins analysis at 20% prevalence. B) Twins, sibling and unrelated analysis at 20% prevalence.
 
 ### cite the code [![DOI](https://zenodo.org/badge/757274106.svg)](https://doi.org/10.5281/zenodo.14576498)
+https://doi.org/10.5281/zenodo.14590933
